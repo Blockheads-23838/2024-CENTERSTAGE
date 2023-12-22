@@ -12,6 +12,7 @@ import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.common.Constants;
 import org.firstinspires.ftc.teamcode.common.Button;
 
@@ -30,10 +31,7 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
     private Servo servo = null;
     private Servo crossbow = null;
     double powercoef = 0.5;
-
-    private Button upButton = new Button();
-    private Button downButton = new Button();
-    private int liftSetpoint = 0;
+    private boolean fieldCentric = false;
 
     @Override
     public void runOpMode() {
@@ -73,6 +71,8 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
         }
 
         runtime.reset();
+        lift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        lift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         servo.setPosition(0);
 
         // run until the end of the match (driver presses STOP)
@@ -102,15 +102,6 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
         }
     }
 
-
-    /*
-
-    if trigger held set arm position to -33 and servo position to 0.84
-    if joystick up and position between than -33 and 0, set servo to 0.95
-    when position greater than 0 set servo to 0.15
-    when scoring set position to 0.7
-    */
-
     public void handleLift() {
         // Lift stuff
         if (gamepad2.a) {
@@ -124,7 +115,7 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
         else if (liftPos > Constants.TopLiftPosition && -gamepad2.right_stick_y < 0) liftPower = 0;
         else if (liftPos < Constants.IntakingLiftPosition && gamepad2.right_trigger > 0.5) liftPower = 1000;
         else if (liftPos < Constants.groundLiftPosition) liftPower = 200;
-        else liftPower = gamepad2.right_stick_y * 1500;
+        else liftPower = gamepad2.right_stick_y * 2500;
         lift.setVelocity(liftPower + 1);
 
         // Intake stuff
@@ -137,9 +128,9 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
         // Servo stuff
         double servoSetpoint;
         if (gamepad2.y) {
-            // TODO: find a good value for this or implement allen's hardware fix
-            servoSetpoint = 0.19;// 0.1 worked aright 0.13 works better
-        } else if (gamepad2.right_trigger > 0.5 || (lift.getCurrentPosition() < Constants.ClearIntakeLiftPosition && -gamepad2.right_stick_y > 0)){
+            servoSetpoint = 0.22;// 0.19 is decent 14.57 12.22.23
+        } else if (gamepad2.right_trigger > 0.5 ||
+                (lift.getCurrentPosition() < Constants.ClearIntakeLiftPosition && -gamepad2.right_stick_y > 0)){
             // put pan down if we're intaking or clearing the intake
             servoSetpoint = 0.00;
         } else {
@@ -151,18 +142,13 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
         if (servo.getPosition() != servoSetpoint) servo.setPosition(servoSetpoint);
     }
 
-    public void handleLiftSetpoints() {
-        upButton.update(gamepad1.dpad_up);
-        downButton.update(gamepad1.dpad_down);
-        if (upButton.is(Button.State.TAP) && lift.getCurrentPosition() < Constants.TopLiftPosition) liftSetpoint += 100;
-        else if (downButton.is(Button.State.TAP) && lift.getCurrentPosition() > Constants.IntakingLiftPosition) liftSetpoint -= 100;
-        lift.setTargetPosition(liftSetpoint);
-        if (lift.getMode() != DcMotor.RunMode.RUN_TO_POSITION) lift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        lift.setPower(0.5);
-    }
-
     public void HandleDrivetrain() {
         // POV Mode uses left joystick to go forward & strafe, and right joystick to rotate.
+
+        if (gamepad1.y) fieldCentric = !fieldCentric;
+        if (gamepad1.b) imu.resetYaw();
+        telemetry.addData("FIELD_CENTRIC: ", fieldCentric);
+
         if(gamepad1.right_bumper) powercoef = 1;
         else powercoef = 0.4;
 
@@ -170,20 +156,21 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
         double strafe = gamepad1.left_stick_x;
         double yaw = gamepad1.right_stick_x;
 
-        /*
-        double gyro_radians = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
-        telemetry.addData("gyro angle: ", gyro_radians);
-        double temp = forward * cos(gyro_radians) +
-                strafe * sin(gyro_radians);
-        strafe = -forward * sin(gyro_radians) +
-                strafe * cos(gyro_radians);
-        strafe *= -1;
-        forward = temp;
+        if (fieldCentric) {
+            double gyro_radians = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
+            telemetry.addData("gyro angle: ", gyro_radians);
+            strafe = -strafe;
+            double temp = forward * Math.cos(gyro_radians) +
+                    strafe * Math.sin(gyro_radians);
+            strafe = -forward * Math.sin(gyro_radians) +
+                    strafe * Math.cos(gyro_radians);
+            strafe *= -1;
+            forward = temp;
 
-         */
+            /* At this point, Joystick X/Y (strafe/forwrd) vectors have been */
+            /* rotated by the gyro angle, and can be sent to drive system */
+        }
 
-        /* At this point, Joystick X/Y (strafe/forwrd) vectors have been */
-        /* rotated by the gyro angle, and can be sent to drive system */
 
         // Combine the joystick requests for each axis-motion to determine each wheel's power.
         // Set up a variable for each drive wheel to save the power level for telemetry.

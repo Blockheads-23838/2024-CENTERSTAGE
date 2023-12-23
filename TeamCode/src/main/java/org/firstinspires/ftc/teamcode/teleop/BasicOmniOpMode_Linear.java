@@ -111,7 +111,7 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
         int liftPos = lift.getCurrentPosition();
         telemetry.addData("lift position: ", liftPos);
         double liftPower;
-        if (gamepad2.left_bumper) liftPower = gamepad2.right_stick_y * 1500; // manual override
+        if (gamepad2.left_bumper) liftPower = gamepad2.right_stick_y * 1500; // manual override; also former ticks/sec value
         else if (liftPos > Constants.TopLiftPosition && -gamepad2.right_stick_y < 0) liftPower = 0;
         else if (liftPos < Constants.IntakingLiftPosition && gamepad2.right_trigger > 0.5) liftPower = 1000;
         else if (liftPos < Constants.groundLiftPosition) liftPower = 200;

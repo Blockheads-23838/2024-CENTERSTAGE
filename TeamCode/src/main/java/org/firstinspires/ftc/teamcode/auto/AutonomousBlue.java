@@ -14,7 +14,7 @@ import org.openftc.easyopencv.OpenCvCameraRotation;
 import java.util.ArrayList;
 
 @com.qualcomm.robotcore.eventloop.opmode.Autonomous (name = "Blue auto")
-public class Autonomous extends LinearOpMode {
+public class AutonomousBlue extends LinearOpMode {
 
     protected DcMotorEx left_front;
     protected DcMotorEx right_front;
@@ -105,19 +105,21 @@ public class Autonomous extends LinearOpMode {
             turn(-0.25, -1000);
             forward(0.5, -100);
             // eject pixel
-            intake.setPower(-0.2);
+            intake.setPower(-0.4);
             sleep(1000);
             intake.setPower(0);
             // nudge the pixel incase it falls vertically
             forward(0.5, 50);
             forward(0.5, -100);
 
+            /*
             strafe(0.25, -1000);
             // do a 180
             turn(0.25, 2000);
             forward(0.25, -1000);
             strafe(0.25, -1000);
             forward(0.25, -1000);
+             */
 
         } else if (propX > 600) { // right spike mark
             telemetry.addLine("Right spike mark");

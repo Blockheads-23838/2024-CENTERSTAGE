@@ -105,7 +105,7 @@ public class AutonomousBlue extends LinearOpMode {
                 })
                 .waitSeconds(1)
                 .build();
-                
+
          */
 
 
@@ -117,7 +117,7 @@ public class AutonomousBlue extends LinearOpMode {
         } else if (propX > 600) { // right spike mark
             drive.followTrajectorySequence(rightTrajectory);
         } else { // middle spike mark
-            drive.followTrajectorySequence(middleTrajectory);
+            // drive.followTrajectorySequence(middleTrajectory);
 
         }
 

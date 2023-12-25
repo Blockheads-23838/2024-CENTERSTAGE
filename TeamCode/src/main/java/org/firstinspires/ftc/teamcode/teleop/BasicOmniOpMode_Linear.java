@@ -128,13 +128,14 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
         // Servo stuff
         double servoSetpoint;
         if (gamepad2.y) {
-            servoSetpoint = 0.22;// 0.19 is decent 14.57 12.22.23
+            servoSetpoint = 0.22; // dropping pixels; 0.19 is decent 14.57 12.22.23
         } else if (gamepad2.right_trigger > 0.5 ||
                 (lift.getCurrentPosition() < Constants.ClearIntakeLiftPosition && -gamepad2.right_stick_y > 0)){
             // put pan down if we're intaking or clearing the intake
             servoSetpoint = 0.00;
         } else {
-            servoSetpoint = 0.1;
+            // stow/carry position
+            servoSetpoint = 0.07;
         }
         // sleep(20);
         telemetry.addData("servoSetpoint: ", servoSetpoint);

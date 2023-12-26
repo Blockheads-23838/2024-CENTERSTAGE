@@ -106,7 +106,8 @@ public class AutonomousRed extends LinearOpMode {
                 .build();
 
         TrajectorySequence leftTrajectory = drive.trajectorySequenceBuilder(startingPose)
-                .splineToLinearHeading(new Pose2d(12, 33, Math.toRadians(0)), Math.toRadians(180))
+                .splineToLinearHeading(new Pose2d(9, -33, Math.toRadians(180)), Math.toRadians(135))
+                .splineToLinearHeading(new Pose2d(12, -33, Math.toRadians(180)), Math.toRadians(180))
                 .UNSTABLE_addTemporalMarkerOffset(0, () -> {
                     intake.setPower(-1);
                 })
@@ -121,7 +122,7 @@ public class AutonomousRed extends LinearOpMode {
         double propArea = pipeline.getPropAreaAttr();
 
         if (propArea < 10000) { // None detected, we assume left spike mark
-            // drive.followTrajectorySequence(leftTrajectory);
+            drive.followTrajectorySequence(leftTrajectory);
         } else if (propX > 300) { // right spike mark; different from blue because we start towards the right mark instead of the left
             drive.followTrajectorySequence(rightTrajectory);
         } else { // middle spike mark

@@ -14,8 +14,7 @@ public class MeepMeepTest {
                 .setConstraints(52.5, 52.5, 142.9, Math.toRadians(180), 15)
                 .followTrajectorySequence(drive ->
                         drive.trajectorySequenceBuilder(new Pose2d(15, 60 + 3, Math.toRadians(270)))
-                                .splineToLinearHeading(new Pose2d(17, 34, Math.toRadians(270)), Math.toRadians(270))
-                                .splineToLinearHeading(new Pose2d(12, 39, Math.toRadians(270)), Math.toRadians(90))
+                                .splineToLinearHeading(new Pose2d(12, 33, Math.toRadians(0)), Math.toRadians(180))
                                 .UNSTABLE_addTemporalMarkerOffset(0, () -> {
                                 })
                                 .UNSTABLE_addTemporalMarkerOffset(1, () -> {

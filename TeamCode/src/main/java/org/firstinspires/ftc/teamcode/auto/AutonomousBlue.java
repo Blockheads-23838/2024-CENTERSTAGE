@@ -68,6 +68,9 @@ public class AutonomousBlue extends LinearOpMode {
         while (!isStarted() && !isStopRequested()) {
             telemetry.addData("Prop x value: ", pipeline.getJunctionPoint().x);
             telemetry.addData("Prop area: ", pipeline.getPropAreaAttr());
+            telemetry.addLine("Place the purple pixel between the second and third compliant wheels from the left.");
+            telemetry.addLine("It should be roughly centered.  It should be as close to touching the ground as possible WITHOUT touching the ground.");
+            telemetry.addLine("Ensure the intake is at the bottom of its backlash-induced free-spinning zone so the pixel doesn't scrape the ground.");
             telemetry.update();
         }
 
@@ -105,12 +108,23 @@ public class AutonomousBlue extends LinearOpMode {
                 .waitSeconds(1)
                 .build();
 
+        TrajectorySequence leftTrajectory = drive.trajectorySequenceBuilder(startingPose)
+                .splineToLinearHeading(new Pose2d(12, 33, Math.toRadians(0)), Math.toRadians(180))
+                .UNSTABLE_addTemporalMarkerOffset(0, () -> {
+                    intake.setPower(-1);
+                })
+                .UNSTABLE_addTemporalMarkerOffset(1, () -> {
+                    intake.setPower(0);
+                })
+                .waitSeconds(1)
+                .build();
+
 
         double propX = pipeline.getJunctionPoint().x;
         double propArea = pipeline.getPropAreaAttr();
 
         if (propArea < 10000) { // None detected, we assume left spike mark
-
+            drive.followTrajectorySequence(leftTrajectory);
         } else if (propX > 600) { // right spike mark
             drive.followTrajectorySequence(rightTrajectory);
         } else { // middle spike mark

@@ -93,10 +93,9 @@ public class AutonomousBlue extends LinearOpMode {
                 .waitSeconds(1)
                 .build();
 
-        /*
         TrajectorySequence middleTrajectory = drive.trajectorySequenceBuilder(startingPose)
-                .splineToLinearHeading(new Pose2d(12, 33, Math.toRadians(270)), Math.toRadians(270))
-                .splineToLinearHeading(new Pose2d(12, 36, Math.toRadians(270)), Math.toRadians(90))
+                .splineToLinearHeading(new Pose2d(17, 34, Math.toRadians(270)), Math.toRadians(270))
+                .splineToLinearHeading(new Pose2d(12, 39, Math.toRadians(270)), Math.toRadians(90))
                 .UNSTABLE_addTemporalMarkerOffset(0, () -> {
                     intake.setPower(-1);
                 })
@@ -105,8 +104,6 @@ public class AutonomousBlue extends LinearOpMode {
                 })
                 .waitSeconds(1)
                 .build();
-
-         */
 
 
         double propX = pipeline.getJunctionPoint().x;
@@ -117,7 +114,7 @@ public class AutonomousBlue extends LinearOpMode {
         } else if (propX > 600) { // right spike mark
             drive.followTrajectorySequence(rightTrajectory);
         } else { // middle spike mark
-            // drive.followTrajectorySequence(middleTrajectory);
+            drive.followTrajectorySequence(middleTrajectory);
 
         }
 

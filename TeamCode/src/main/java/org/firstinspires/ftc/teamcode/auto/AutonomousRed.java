@@ -123,7 +123,7 @@ public class AutonomousRed extends LinearOpMode {
 
         if (propArea < 10000) { // None detected, we assume left spike mark
             drive.followTrajectorySequence(leftTrajectory);
-        } else if (propX > 300) { // right spike mark; different from blue because we start towards the right mark instead of the left
+        } else if (propX > 500) { // right spike mark; different from blue because we start towards the right mark instead of the left
             drive.followTrajectorySequence(rightTrajectory);
         } else { // middle spike mark
             drive.followTrajectorySequence(middleTrajectory);

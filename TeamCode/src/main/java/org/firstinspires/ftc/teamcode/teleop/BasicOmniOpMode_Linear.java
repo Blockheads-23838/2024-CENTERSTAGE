@@ -71,8 +71,6 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
         }
 
         runtime.reset();
-        lift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        lift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         servo.setPosition(0);
 
         // run until the end of the match (driver presses STOP)
@@ -135,7 +133,7 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
             servoSetpoint = 0.00;
         } else {
             // stow/carry position
-            servoSetpoint = 0.07;
+            servoSetpoint = 0.09;
         }
         // sleep(20);
         telemetry.addData("servoSetpoint: ", servoSetpoint);
@@ -151,6 +149,7 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
         telemetry.addData("FIELD_CENTRIC: ", fieldCentric);
 
         if(gamepad1.right_bumper) powercoef = 1;
+        else if (gamepad1.left_trigger > 0.3) powercoef = 0.2;
         else powercoef = 0.4;
 
         double forward = -gamepad1.left_stick_y; /* Invert stick Y axis */

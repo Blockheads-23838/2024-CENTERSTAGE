@@ -107,7 +107,7 @@ public class AutonomousRed extends LinearOpMode {
 
         TrajectorySequence leftTrajectory = drive.trajectorySequenceBuilder(startingPose)
                 .splineToLinearHeading(new Pose2d(9, -33, Math.toRadians(180)), Math.toRadians(135))
-                .splineToLinearHeading(new Pose2d(12, -33, Math.toRadians(180)), Math.toRadians(180))
+                .splineToLinearHeading(new Pose2d(13, -33, Math.toRadians(180)), Math.toRadians(180))
                 .UNSTABLE_addTemporalMarkerOffset(0, () -> {
                     intake.setPower(-1);
                 })

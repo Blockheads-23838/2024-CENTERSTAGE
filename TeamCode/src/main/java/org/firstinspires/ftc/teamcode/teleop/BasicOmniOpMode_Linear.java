@@ -27,8 +27,11 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
     private DcMotor rightBackDrive = null;
     private DcMotor intake = null;
     private DcMotorEx lift = null;
+    private DcMotorEx trident = null;
+    private Servo leftTridentServo = null;
+    private Servo rightTridentServo = null;
     private IMU imu = null;
-    private Servo servo = null;
+    // private Servo servo = null;
     private Servo crossbow = null;
     double powercoef = 0.5;
     private boolean fieldCentric = false;
@@ -47,8 +50,11 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
 
         lift = hardwareMap.get(DcMotorEx.class, "lift");
         intake = hardwareMap.get(DcMotor.class, "intake");
+        trident = hardwareMap.get(DcMotorEx.class, "trident");
 
-        servo = hardwareMap.get(Servo.class, "servo");
+        leftTridentServo = hardwareMap.get(Servo.class, "trident_left");
+        rightTridentServo = hardwareMap.get(Servo.class, "trident_right");
+
         crossbow = hardwareMap.get(Servo.class, "crossbow");
 
         leftFrontDrive.setDirection(Constants.motorDirections.get("left_front"));
@@ -71,7 +77,10 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
         }
 
         runtime.reset();
-        servo.setPosition(0);
+        leftTridentServo.setPosition(Constants.leftTridentClosedPosition);
+        rightTridentServo.setPosition(Constants.rightTridentClosedPosition);
+        trident.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        trident.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
@@ -111,7 +120,7 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
         double liftPower;
         if (gamepad2.left_bumper) liftPower = gamepad2.right_stick_y * 1500; // manual override; also former ticks/sec value
         else if (liftPos > Constants.TopLiftPosition && -gamepad2.right_stick_y < 0) liftPower = 0;
-        else if (liftPos < Constants.IntakingLiftPosition && gamepad2.right_trigger > 0.5) liftPower = 1000;
+        else if (gamepad2.right_trigger > 0.5) liftPower = (Constants.groundLiftPosition - lift.getCurrentPosition()); // P controller to get the lift down
         else if (liftPos < Constants.groundLiftPosition) liftPower = 200;
         else liftPower = gamepad2.right_stick_y * 2500;
         lift.setVelocity(liftPower + 1);
@@ -123,22 +132,47 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
             intake.setPower(gamepad2.left_trigger);
         }
 
-        // Servo stuff
-        double servoSetpoint;
-        if (gamepad2.y) {
-            servoSetpoint = 0.22; // dropping pixels; 0.19 is decent 14.57 12.22.23
-        } else if (gamepad2.right_trigger > 0.5 ||
-                (lift.getCurrentPosition() < Constants.ClearIntakeLiftPosition && -gamepad2.right_stick_y > 0)){
-            // put pan down if we're intaking or clearing the intake
-            servoSetpoint = 0.00;
-        } else {
-            // stow/carry position
-            servoSetpoint = 0.09;
+        /*
+
+        // Trident motor stuff
+        if (-gamepad2.right_stick_y > 0 && lift.getCurrentPosition() > Constants.tridentDeployLiftPosition) {
+            trident.setVelocity(Constants.tridentDeployedPosition - trident.getCurrentPosition()); // more P controllers
+        } else if (lift.getCurrentPosition() < Constants.tridentStowPosition) {
+            trident.setVelocity(-trident.getCurrentPosition());
         }
-        // sleep(20);
-        telemetry.addData("servoSetpoint: ", servoSetpoint);
-        telemetry.addData("Last servo setpoint: ", servo.getPosition());
-        if (servo.getPosition() != servoSetpoint) servo.setPosition(servoSetpoint);
+        */
+
+        if (lift.getCurrentPosition() < Constants.tridentStowPosition) {
+            trident.setVelocity(-trident.getCurrentPosition());
+        } else {
+            trident.setVelocity(1200 - trident.getCurrentPosition());
+        }
+
+
+
+        // Trident servo stuff
+        double leftTridentSetpoint = Constants.leftTridentClosedPosition;
+        double rightTridentSetpoint = Constants.rightTridentClosedPosition;;
+
+        if (gamepad2.left_stick_x < -0.2) {
+            telemetry.addLine("Opening left trident");
+            leftTridentSetpoint = Constants.leftTridentOpenPosition;
+        } else if (gamepad2.left_stick_x > 0.2) {
+            telemetry.addLine("Opening right trident");
+            rightTridentSetpoint = Constants.rightTridentOpenPosition;
+        } else if (gamepad2.y || gamepad2.right_bumper) {
+            leftTridentSetpoint = Constants.leftTridentOpenPosition;
+            rightTridentSetpoint = Constants.rightTridentOpenPosition;
+        }
+        telemetry.addData("left trident setpoint: ", leftTridentSetpoint);
+        telemetry.addData("right trident setpoint: ", rightTridentSetpoint);
+
+        if (leftTridentServo.getPosition() != leftTridentSetpoint) leftTridentServo.setPosition(leftTridentSetpoint);
+        if (rightTridentServo.getPosition() != rightTridentSetpoint) rightTridentServo.setPosition(rightTridentSetpoint);
+
+        // trident.setPower(gamepad2.left_stick_y);
+        telemetry.addData("trident position: ", trident.getCurrentPosition());
+
     }
 
     public void HandleDrivetrain() {

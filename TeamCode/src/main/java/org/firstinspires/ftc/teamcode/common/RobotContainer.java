@@ -55,16 +55,6 @@ public class RobotContainer {
         lb = hwMap.get(DcMotorEx.class, "left_back");
         rb = hwMap.get(DcMotorEx.class, "right_back");
 
-        /* all of our gyro initialization stuff - you probably don't need to worry about this*/
-        /*
-        imu = hwMap.get(IMU.class, "imu");
-        RevHubOrientationOnRobot.LogoFacingDirection logoDirection = RevHubOrientationOnRobot.LogoFacingDirection.UP;
-        RevHubOrientationOnRobot.UsbFacingDirection  usbDirection  = RevHubOrientationOnRobot.UsbFacingDirection.FORWARD;
-        RevHubOrientationOnRobot orientationOnRobot = new RevHubOrientationOnRobot(logoDirection, usbDirection);
-        imu.initialize(new IMU.Parameters(orientationOnRobot));
-
-         */
-
         /* make sure all of our motors are going the right way, changes across robots */
         lf.setDirection(DcMotor.Direction.FORWARD);
         lb.setDirection(DcMotor.Direction.FORWARD);

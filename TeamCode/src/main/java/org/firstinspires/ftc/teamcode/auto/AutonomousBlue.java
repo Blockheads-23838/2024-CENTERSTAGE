@@ -102,15 +102,7 @@ public class AutonomousBlue extends LinearOpMode {
                 .build();
 
         TrajectorySequence middleTrajectory = drive.trajectorySequenceBuilder(startingPose)
-                .splineToLinearHeading(new Pose2d(17, 34, Math.toRadians(270)), Math.toRadians(270))
-                .splineToLinearHeading(new Pose2d(12, 39, Math.toRadians(270)), Math.toRadians(90))
-                .UNSTABLE_addTemporalMarkerOffset(0, () -> {
-                    intake.setPower(-1);
-                })
-                .UNSTABLE_addTemporalMarkerOffset(1, () -> {
-                    intake.setPower(0);
-                })
-                .waitSeconds(1)
+                .splineToLinearHeading(new Pose2d(12, 30, Math.toRadians(270)), Math.toRadians(270))
                 .build();
 
         TrajectorySequence leftTrajectory = drive.trajectorySequenceBuilder(startingPose)
@@ -129,5 +121,6 @@ public class AutonomousBlue extends LinearOpMode {
             drive.followTrajectorySequence(middleTrajectory);
         }
         leftTridentServo.setPosition(Constants.leftTridentOpenPosition);
+        sleep(1000);
     }
 }

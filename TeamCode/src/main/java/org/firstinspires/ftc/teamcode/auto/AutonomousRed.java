@@ -100,8 +100,7 @@ public class AutonomousRed extends LinearOpMode {
                 .build();
 
         TrajectorySequence rightTrajectoryPark = drive.trajectorySequenceBuilder(rightTrajectoryYellow.end())
-                .splineToLinearHeading(new Pose2d(43, -48, Math.toRadians(180)), Math.toRadians(270))
-                .splineToLinearHeading(new Pose2d(60, -60, Math.toRadians(180)), Math.toRadians(30))
+                .splineToLinearHeading(new Pose2d(43, -65, Math.toRadians(180)), Math.toRadians(270))
                 .build();
 
         /* -------- MIDDLE -------- */
@@ -118,8 +117,7 @@ public class AutonomousRed extends LinearOpMode {
                 .build();
 
         TrajectorySequence middleTrajectoryPark = drive.trajectorySequenceBuilder(middleTrajectoryYellow.end())
-                .splineToLinearHeading(new Pose2d(43, -48, Math.toRadians(180)), Math.toRadians(270))
-                .splineToLinearHeading(new Pose2d(60, -60, Math.toRadians(180)), Math.toRadians(30))
+                .splineToLinearHeading(new Pose2d(43, -65, Math.toRadians(180)), Math.toRadians(270))
                 .build();
 
 
@@ -133,12 +131,11 @@ public class AutonomousRed extends LinearOpMode {
                 .back(6,
                         SampleMecanumDrive.getVelocityConstraint(6, 142.9, 16.34),
                         SampleMecanumDrive.getAccelerationConstraint(52.48))
-                .splineToSplineHeading(new Pose2d(50, -24, Math.toRadians(180)), Math.toRadians(0))
+                .splineToSplineHeading(new Pose2d(50, -30, Math.toRadians(180)), Math.toRadians(0))
                 .build();
 
         TrajectorySequence leftTrajectoryPark = drive.trajectorySequenceBuilder(leftTrajectoryYellow.end())
-                .splineToLinearHeading(new Pose2d(43, -48, Math.toRadians(180)), Math.toRadians(270))
-                .splineToLinearHeading(new Pose2d(60, -60, Math.toRadians(180)), Math.toRadians(30))
+                .splineToLinearHeading(new Pose2d(42, -65, Math.toRadians(180)), Math.toRadians(270))
                 .build();
 
 
@@ -159,12 +156,13 @@ public class AutonomousRed extends LinearOpMode {
             sleep(1000);
             // Start intake and deploy trident
             intake.setPower(0.4);
-            trident.setTargetPosition(1200);
+            trident.setTargetPosition(1100);
             trident.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             trident.setVelocity(500);
             // Drive to backboard
             drive.followTrajectorySequence(leftTrajectoryYellow);
             // Score
+            sleep(200);
             leftTridentServo.setPosition(Constants.leftTridentOpenPosition);
             sleep(200);
             // Park
@@ -183,12 +181,13 @@ public class AutonomousRed extends LinearOpMode {
             sleep(1000);
             // Start intake and deploy trident
             intake.setPower(0.4);
-            trident.setTargetPosition(1200);
+            trident.setTargetPosition(1100);
             trident.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             trident.setVelocity(500);
             // Drive to backboard
-            drive.followTrajectorySequence(middleTrajectoryYellow);
+            drive.followTrajectorySequence(rightTrajectoryYellow);
             // Score
+            sleep(200);
             leftTridentServo.setPosition(Constants.leftTridentOpenPosition);
             sleep(200);
             // Park
@@ -207,12 +206,13 @@ public class AutonomousRed extends LinearOpMode {
             sleep(1000);
             // Start intake and deploy trident
             intake.setPower(0.4);
-            trident.setTargetPosition(1200);
+            trident.setTargetPosition(1100);
             trident.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             trident.setVelocity(500);
             // Drive to backboard
             drive.followTrajectorySequence(middleTrajectoryYellow);
             // Score
+            sleep(200);
             leftTridentServo.setPosition(Constants.leftTridentOpenPosition);
             sleep(200);
             // Park
@@ -224,11 +224,12 @@ public class AutonomousRed extends LinearOpMode {
         trident.setTargetPosition(0);
         trident.setVelocity(1000);
         while (trident.isBusy()) sleep(20);
-        lift.setTargetPosition(-100);
-        lift.setVelocity(300);
-        while (lift.isBusy()) sleep(20);
+        lift.setTargetPositionTolerance(3);
+        lift.setTargetPosition(-150);
+        lift.setVelocity(2500);
+        sleep(1000);
         lift.setTargetPosition(-30);
-        while (lift.isBusy()) sleep(20);
+        sleep(1000);
         lift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         sleep(500);
     }

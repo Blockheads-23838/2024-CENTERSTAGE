@@ -90,15 +90,7 @@ public class AutonomousBlue extends LinearOpMode {
 
 
         TrajectorySequence rightTrajectory = drive.trajectorySequenceBuilder(startingPose)
-                .splineToLinearHeading(new Pose2d(9, 36 - 3, Math.toRadians(180)), Math.toRadians(225))
-                .splineToLinearHeading(new Pose2d(12, 36 - 3, Math.toRadians(180)), Math.toRadians(180))
-                .UNSTABLE_addTemporalMarkerOffset(0, () -> {
-                    intake.setPower(-1);
-                })
-                .UNSTABLE_addTemporalMarkerOffset(1, () -> {
-                    intake.setPower(0);
-                })
-                .waitSeconds(1)
+                .splineToLinearHeading(new Pose2d(-2, 37, Math.toRadians(270)), Math.toRadians(180))
                 .build();
 
         TrajectorySequence middleTrajectory = drive.trajectorySequenceBuilder(startingPose)

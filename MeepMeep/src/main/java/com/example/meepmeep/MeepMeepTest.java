@@ -14,7 +14,7 @@ public class MeepMeepTest {
                 .setConstraints(52.5, 52.5, 142.9, Math.toRadians(180), 15)
                 .followTrajectorySequence(drive ->
                         drive.trajectorySequenceBuilder(new Pose2d(15, 63, Math.toRadians(270)))
-                                .splineToLinearHeading(new Pose2d(12, 30, Math.toRadians(270)), Math.toRadians(270))
+                                .splineToLinearHeading(new Pose2d(-1, 33, Math.toRadians(270)), Math.toRadians(180))
                                 .build()
                 );
 

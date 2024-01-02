@@ -86,17 +86,59 @@ public class AutonomousRed extends LinearOpMode {
         Pose2d startingPose = new Pose2d(15, -63, Math.toRadians(90));
         drive.setPoseEstimate(startingPose);
 
+        /* -------- RIGHT -------- */
 
-        TrajectorySequence rightTrajectory = drive.trajectorySequenceBuilder(startingPose)
+        TrajectorySequence rightTrajectoryPurple = drive.trajectorySequenceBuilder(startingPose)
                 .splineToLinearHeading(new Pose2d(25, -39, Math.toRadians(90)), Math.toRadians(90))
                 .build();
 
-        TrajectorySequence middleTrajectory = drive.trajectorySequenceBuilder(startingPose)
+        TrajectorySequence rightTrajectoryYellow = drive.trajectorySequenceBuilder(rightTrajectoryPurple.end())
+                .back(6,
+                        SampleMecanumDrive.getVelocityConstraint(6, 142.9, 16.34),
+                        SampleMecanumDrive.getAccelerationConstraint(52.48))
+                .splineToSplineHeading(new Pose2d(50, -38, Math.toRadians(180)), Math.toRadians(0))
+                .build();
+
+        TrajectorySequence rightTrajectoryPark = drive.trajectorySequenceBuilder(rightTrajectoryYellow.end())
+                .splineToLinearHeading(new Pose2d(43, -48, Math.toRadians(180)), Math.toRadians(270))
+                .splineToLinearHeading(new Pose2d(60, -60, Math.toRadians(180)), Math.toRadians(30))
+                .build();
+
+        /* -------- MIDDLE -------- */
+
+        TrajectorySequence middleTrajectoryPurple = drive.trajectorySequenceBuilder(startingPose)
                 .splineToLinearHeading(new Pose2d(15, -30, Math.toRadians(90)), Math.toRadians(90))
                 .build();
 
-        TrajectorySequence leftTrajectory = drive.trajectorySequenceBuilder(startingPose)
-                .splineToLinearHeading(new Pose2d(2, -39, Math.toRadians(90)), Math.toRadians(210))
+        TrajectorySequence middleTrajectoryYellow = drive.trajectorySequenceBuilder(middleTrajectoryPurple.end())
+                .back(6,
+                        SampleMecanumDrive.getVelocityConstraint(6, 142.9, 16.34),
+                        SampleMecanumDrive.getAccelerationConstraint(52.48))
+                .splineToSplineHeading(new Pose2d(50, -30, Math.toRadians(180)), Math.toRadians(0))
+                .build();
+
+        TrajectorySequence middleTrajectoryPark = drive.trajectorySequenceBuilder(middleTrajectoryYellow.end())
+                .splineToLinearHeading(new Pose2d(43, -48, Math.toRadians(180)), Math.toRadians(270))
+                .splineToLinearHeading(new Pose2d(60, -60, Math.toRadians(180)), Math.toRadians(30))
+                .build();
+
+
+        /* -------- LEFT -------- */
+
+        TrajectorySequence leftTrajectoryPurple = drive.trajectorySequenceBuilder(startingPose)
+                .splineToLinearHeading(new Pose2d(6, -33, Math.toRadians(135)), Math.toRadians(180))
+                .build();
+
+        TrajectorySequence leftTrajectoryYellow = drive.trajectorySequenceBuilder(leftTrajectoryPurple.end())
+                .back(6,
+                        SampleMecanumDrive.getVelocityConstraint(6, 142.9, 16.34),
+                        SampleMecanumDrive.getAccelerationConstraint(52.48))
+                .splineToSplineHeading(new Pose2d(50, -24, Math.toRadians(180)), Math.toRadians(0))
+                .build();
+
+        TrajectorySequence leftTrajectoryPark = drive.trajectorySequenceBuilder(leftTrajectoryYellow.end())
+                .splineToLinearHeading(new Pose2d(43, -48, Math.toRadians(180)), Math.toRadians(270))
+                .splineToLinearHeading(new Pose2d(60, -60, Math.toRadians(180)), Math.toRadians(30))
                 .build();
 
 
@@ -104,12 +146,90 @@ public class AutonomousRed extends LinearOpMode {
         double propArea = pipeline.getPropAreaAttr();
 
         if (propArea < 10000) { // None detected, we assume left spike mark
-            drive.followTrajectorySequence(leftTrajectory);
+            drive.followTrajectorySequence(leftTrajectoryPurple);
+            // Drop purple pixel
+            leftTridentServo.setPosition(Constants.leftTridentOpenPosition);
+            sleep(500);
+            leftTridentServo.setPosition(Constants.leftTridentClosedPosition);
+            sleep(500);
+            // Raise lift
+            lift.setTargetPosition(600);
+            lift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            lift.setVelocity(300);
+            sleep(1000);
+            // Start intake and deploy trident
+            intake.setPower(0.4);
+            trident.setTargetPosition(1200);
+            trident.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            trident.setVelocity(500);
+            // Drive to backboard
+            drive.followTrajectorySequence(leftTrajectoryYellow);
+            // Score
+            leftTridentServo.setPosition(Constants.leftTridentOpenPosition);
+            sleep(200);
+            // Park
+            drive.followTrajectorySequence(leftTrajectoryPark);
         } else if (propX > 500) { // right spike mark; different from blue because we start towards the right mark instead of the left
-            drive.followTrajectorySequence(rightTrajectory);
+            drive.followTrajectorySequence(rightTrajectoryPurple);
+            // Drop purple pixel
+            leftTridentServo.setPosition(Constants.leftTridentOpenPosition);
+            sleep(500);
+            leftTridentServo.setPosition(Constants.leftTridentClosedPosition);
+            sleep(500);
+            // Raise lift
+            lift.setTargetPosition(600);
+            lift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            lift.setVelocity(300);
+            sleep(1000);
+            // Start intake and deploy trident
+            intake.setPower(0.4);
+            trident.setTargetPosition(1200);
+            trident.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            trident.setVelocity(500);
+            // Drive to backboard
+            drive.followTrajectorySequence(middleTrajectoryYellow);
+            // Score
+            leftTridentServo.setPosition(Constants.leftTridentOpenPosition);
+            sleep(200);
+            // Park
+            drive.followTrajectorySequence(rightTrajectoryPark);
         } else { // middle spike mark
-            drive.followTrajectorySequence(middleTrajectory);
+            drive.followTrajectorySequence(middleTrajectoryPurple);
+            // Drop purple pixel
+            leftTridentServo.setPosition(Constants.leftTridentOpenPosition);
+            sleep(500);
+            leftTridentServo.setPosition(Constants.leftTridentClosedPosition);
+            sleep(500);
+            // Raise lift
+            lift.setTargetPosition(600);
+            lift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            lift.setVelocity(300);
+            sleep(1000);
+            // Start intake and deploy trident
+            intake.setPower(0.4);
+            trident.setTargetPosition(1200);
+            trident.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            trident.setVelocity(500);
+            // Drive to backboard
+            drive.followTrajectorySequence(middleTrajectoryYellow);
+            // Score
+            leftTridentServo.setPosition(Constants.leftTridentOpenPosition);
+            sleep(200);
+            // Park
+            drive.followTrajectorySequence(middleTrajectoryPark);
         }
-        leftTridentServo.setPosition(Constants.leftTridentOpenPosition);
+
+        // calibrate for teleop
+        leftTridentServo.setPosition(Constants.leftTridentClosedPosition);
+        trident.setTargetPosition(0);
+        trident.setVelocity(1000);
+        while (trident.isBusy()) sleep(20);
+        lift.setTargetPosition(-100);
+        lift.setVelocity(300);
+        while (lift.isBusy()) sleep(20);
+        lift.setTargetPosition(-30);
+        while (lift.isBusy()) sleep(20);
+        lift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        sleep(500);
     }
 }

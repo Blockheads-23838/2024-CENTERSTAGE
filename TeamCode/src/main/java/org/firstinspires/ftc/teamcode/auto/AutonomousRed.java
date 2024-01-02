@@ -20,7 +20,9 @@ import org.openftc.easyopencv.OpenCvCameraRotation;
 public class AutonomousRed extends LinearOpMode {
 
     private DcMotorEx lift;
-    private Servo servo;
+    private DcMotorEx trident = null;
+    private Servo leftTridentServo = null;
+    private Servo rightTridentServo = null;
     private DcMotor intake = null;
     OpenCvCamera camera;
     PipelineRed pipeline = new PipelineRed();
@@ -54,14 +56,17 @@ public class AutonomousRed extends LinearOpMode {
         // Scoring activation
         lift = hardwareMap.get(DcMotorEx.class, "lift");
         intake = hardwareMap.get(DcMotor.class, "intake");
-        servo = hardwareMap.get(Servo.class, "servo");
+        trident = hardwareMap.get(DcMotorEx.class, "trident");
+
+        leftTridentServo = hardwareMap.get(Servo.class, "trident_left");
+        rightTridentServo = hardwareMap.get(Servo.class, "trident_right");
 
         lift.setDirection(Constants.motorDirections.get("lift"));
 
         lift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         lift.setVelocity(1);
-        servo.setPosition(0.1);
+        leftTridentServo.setPosition(Constants.leftTridentClosedPosition);
 
         while (!isStarted() && !isStopRequested()) {
             telemetry.addData("Prop x value: ", pipeline.getJunctionPoint().x);
@@ -106,14 +111,7 @@ public class AutonomousRed extends LinearOpMode {
                 .build();
 
         TrajectorySequence leftTrajectory = drive.trajectorySequenceBuilder(startingPose)
-                .splineToLinearHeading(new Pose2d(9, -33, Math.toRadians(180)), Math.toRadians(135))
-                .splineToLinearHeading(new Pose2d(13, -33, Math.toRadians(180)), Math.toRadians(180))
-                .UNSTABLE_addTemporalMarkerOffset(0, () -> {
-                    intake.setPower(-1);
-                })
-                .UNSTABLE_addTemporalMarkerOffset(1, () -> {
-                    intake.setPower(0);
-                })
+                .splineToLinearHeading(new Pose2d(2, -39, Math.toRadians(90)), Math.toRadians(210))
                 .waitSeconds(1)
                 .build();
 
@@ -128,19 +126,6 @@ public class AutonomousRed extends LinearOpMode {
         } else { // middle spike mark
             drive.followTrajectorySequence(middleTrajectory);
         }
-
-        sleep(400);
-        lift.setTargetPosition(1500);
-        lift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        lift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        lift.setVelocity(1000);
-        while (lift.isBusy()) telemetry.addData("lift position: ", lift.getCurrentPosition());
-        // wiggle the pixel off
-        for (int i = 0; i < 20; i++) {
-            servo.setPosition(0.19);
-            sleep(100);
-            servo.setPosition(0.1);
-            sleep(100);
-        }
+        leftTridentServo.setPosition(Constants.leftTridentOpenPosition);
     }
 }

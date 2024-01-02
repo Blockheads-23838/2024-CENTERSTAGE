@@ -87,7 +87,7 @@ public class AutonomousBlue extends LinearOpMode {
                 .back(6,
                         SampleMecanumDrive.getVelocityConstraint(6, 142.9, 16.34),
                         SampleMecanumDrive.getAccelerationConstraint(52.48))
-                .splineToLinearHeading(new Pose2d(50, 33, Math.toRadians(180)), Math.toRadians(0))
+                .splineToLinearHeading(new Pose2d(50, 32, Math.toRadians(180)), Math.toRadians(0))
                 .build();
 
         TrajectorySequence rightTrajectoryPark = drive.trajectorySequenceBuilder(rightTrajectoryYellow.end())
@@ -188,12 +188,13 @@ public class AutonomousBlue extends LinearOpMode {
             sleep(1000);
             // Start intake and deploy trident
             intake.setPower(0.4);
-            trident.setTargetPosition(1200);
+            trident.setTargetPosition(1100);
             trident.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             trident.setVelocity(500);
             // Drive to backboard
             drive.followTrajectorySequence(rightTrajectoryYellow);
             // Score
+            sleep(200);
             leftTridentServo.setPosition(Constants.leftTridentOpenPosition);
             sleep(200);
             // Park

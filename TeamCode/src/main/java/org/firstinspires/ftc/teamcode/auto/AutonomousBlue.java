@@ -91,27 +91,25 @@ public class AutonomousBlue extends LinearOpMode {
                 .build();
 
         TrajectorySequence rightTrajectoryPark = drive.trajectorySequenceBuilder(rightTrajectoryYellow.end())
-                .splineToLinearHeading(new Pose2d(43, 60, Math.toRadians(180)), Math.toRadians(30))
-                .splineToLinearHeading(new Pose2d(60, 60, Math.toRadians(180)), Math.toRadians(0))
+                .splineToLinearHeading(new Pose2d(43, 65, Math.toRadians(180)), Math.toRadians(30))
                 .build();
 
 
         /* --------- MIDDLE -------- */
 
         TrajectorySequence middleTrajectoryPurple = drive.trajectorySequenceBuilder(startingPose)
-                .splineToLinearHeading(new Pose2d(12, 30, Math.toRadians(270)), Math.toRadians(270))
+                .splineToLinearHeading(new Pose2d(12, 31, Math.toRadians(270)), Math.toRadians(270))
                 .build();
 
         TrajectorySequence middleTrajectoryYellow = drive.trajectorySequenceBuilder(middleTrajectoryPurple.end())
                 .back(6,
                         SampleMecanumDrive.getVelocityConstraint(6, 142.9, 16.34),
                         SampleMecanumDrive.getAccelerationConstraint(52.48))
-                .splineToSplineHeading(new Pose2d(50, 42, Math.toRadians(180)), Math.toRadians(0))
+                .splineToSplineHeading(new Pose2d(50, 40, Math.toRadians(180)), Math.toRadians(0))
                 .build();
 
         TrajectorySequence middleTrajectoryPark = drive.trajectorySequenceBuilder(middleTrajectoryYellow.end())
-                                .splineToLinearHeading(new Pose2d(43, 60, Math.toRadians(180)), Math.toRadians(30))
-                                .splineToLinearHeading(new Pose2d(60, 60, Math.toRadians(180)), Math.toRadians(0))
+                                .splineToLinearHeading(new Pose2d(43, 65, Math.toRadians(180)), Math.toRadians(30))
                                 .build();
 
         /* --------  LEFT -------- */
@@ -128,8 +126,7 @@ public class AutonomousBlue extends LinearOpMode {
                 .splineToLinearHeading(new Pose2d(50, 49, Math.toRadians(180)), Math.toRadians(0))
                 .build();
         TrajectorySequence leftTrajectoryPark = drive.trajectorySequenceBuilder((leftTrajectoryYellow.end()))
-                .splineToLinearHeading(new Pose2d(43, 60, Math.toRadians(180)), Math.toRadians(30))
-                .splineToLinearHeading(new Pose2d(60, 60, Math.toRadians(180)), Math.toRadians(0))
+                .splineToLinearHeading(new Pose2d(43, 65, Math.toRadians(180)), Math.toRadians(30))
                 .build();
 
 
@@ -210,18 +207,19 @@ public class AutonomousBlue extends LinearOpMode {
             leftTridentServo.setPosition(Constants.leftTridentClosedPosition);
             sleep(500);
             // Raise lift
-            lift.setTargetPosition(1000);
+            lift.setTargetPosition(600);
             lift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             lift.setVelocity(300);
             sleep(1000);
             // Start intake and deploy trident
             intake.setPower(0.4);
-            trident.setTargetPosition(1200);
+            trident.setTargetPosition(1100);
             trident.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             trident.setVelocity(500);
             // Drive to backboard
             drive.followTrajectorySequence(middleTrajectoryYellow);
             // Score
+            sleep(200);
             leftTridentServo.setPosition(Constants.leftTridentOpenPosition);
             sleep(200);
             // Park

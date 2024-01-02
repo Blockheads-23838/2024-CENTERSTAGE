@@ -99,20 +99,11 @@ public class AutonomousRed extends LinearOpMode {
                 .build();
 
         TrajectorySequence middleTrajectory = drive.trajectorySequenceBuilder(startingPose)
-                .splineToLinearHeading(new Pose2d(17, -34, Math.toRadians(90)), Math.toRadians(90))
-                .splineToLinearHeading(new Pose2d(12, -39, Math.toRadians(90)), Math.toRadians(270))
-                .UNSTABLE_addTemporalMarkerOffset(0, () -> {
-                    intake.setPower(-1);
-                })
-                .UNSTABLE_addTemporalMarkerOffset(1, () -> {
-                    intake.setPower(0);
-                })
-                .waitSeconds(1)
+                .splineToLinearHeading(new Pose2d(15, -30, Math.toRadians(90)), Math.toRadians(90))
                 .build();
 
         TrajectorySequence leftTrajectory = drive.trajectorySequenceBuilder(startingPose)
                 .splineToLinearHeading(new Pose2d(2, -39, Math.toRadians(90)), Math.toRadians(210))
-                .waitSeconds(1)
                 .build();
 
 

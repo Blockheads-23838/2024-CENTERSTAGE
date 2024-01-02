@@ -66,22 +66,10 @@ public class AutonomousBlue extends LinearOpMode {
         lift.setDirection(Constants.motorDirections.get("lift"));
 
         lift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        trident.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         lift.setVelocity(1);
         leftTridentServo.setPosition(Constants.leftTridentClosedPosition);
-
-        while (!isStarted() && !isStopRequested()) {
-            telemetry.addData("Prop x value: ", pipeline.getJunctionPoint().x);
-            telemetry.addData("Prop area: ", pipeline.getPropAreaAttr());
-            telemetry.addLine("Place the purple pixel between the second and third compliant wheels from the left.");
-            telemetry.addLine("It should be roughly centered.  It should be as close to touching the ground as possible WITHOUT touching the ground.");
-            telemetry.addLine("Ensure the intake is at the bottom of its backlash-induced free-spinning zone so the pixel doesn't scrape the ground.");
-            telemetry.update();
-        }
-
-        lift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        lift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        lift.setVelocity(1);
 
         // Drivetrain activation
         SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap);
@@ -97,22 +85,78 @@ public class AutonomousBlue extends LinearOpMode {
                 .splineToLinearHeading(new Pose2d(12, 30, Math.toRadians(270)), Math.toRadians(270))
                 .build();
 
-        TrajectorySequence leftTrajectory = drive.trajectorySequenceBuilder(startingPose)
-                .splineToLinearHeading(new Pose2d(23, 39, Math.toRadians(270)), Math.toRadians(270))
+        TrajectorySequence leftTrajectoryPurple = drive.trajectorySequenceBuilder(startingPose)
+                .splineToLinearHeading(new Pose2d(18, 31, Math.toRadians(0)), Math.toRadians(270))
                 .build();
 
+        TrajectorySequence leftTrajectoryYellow = drive.trajectorySequenceBuilder((leftTrajectoryPurple.end()))
+                .back(6,
+                        SampleMecanumDrive.getVelocityConstraint(6, 142.9, 16.34),
+                        SampleMecanumDrive.getAccelerationConstraint(52.48))
+                .strafeLeft(24)
+                .splineToLinearHeading(new Pose2d(50, 48, Math.toRadians(180)), Math.toRadians(0))
+                .build();
+        TrajectorySequence leftTrajectoryPark = drive.trajectorySequenceBuilder((leftTrajectoryYellow.end()))
+                .splineToLinearHeading(new Pose2d(43, 60, Math.toRadians(180)), Math.toRadians(30))
+                .splineToLinearHeading(new Pose2d(60, 60, Math.toRadians(180)), Math.toRadians(0))
+                .build();
+
+
+        while (!isStarted() && !isStopRequested()) {
+            telemetry.addData("Prop x value: ", pipeline.getJunctionPoint().x);
+            telemetry.addData("Prop area: ", pipeline.getPropAreaAttr());
+            telemetry.addLine("Place the purple pixel between the second and third compliant wheels from the left.");
+            telemetry.addLine("It should be roughly centered.  It should be as close to touching the ground as possible WITHOUT touching the ground.");
+            telemetry.addLine("Ensure the intake is at the bottom of its backlash-induced free-spinning zone so the pixel doesn't scrape the ground.");
+            telemetry.update();
+        }
+
+        trident.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        trident.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        lift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        lift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        lift.setVelocity(1);
 
         double propX = pipeline.getJunctionPoint().x;
         double propArea = pipeline.getPropAreaAttr();
 
         if (propArea < 10000) { // None detected, we assume left spike mark
-            drive.followTrajectorySequence(leftTrajectory);
+            drive.followTrajectorySequence(leftTrajectoryPurple);
+            leftTridentServo.setPosition(Constants.leftTridentOpenPosition);
+            sleep(500);
+            leftTridentServo.setPosition(Constants.leftTridentClosedPosition);
+            sleep(500);
+            lift.setTargetPosition(600);
+            lift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            lift.setVelocity(300);
+            sleep(1000);
+            intake.setPower(0.4);
+            trident.setTargetPosition(1100);
+            trident.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            trident.setVelocity(1000);
+            drive.followTrajectorySequence(leftTrajectoryYellow);
+            leftTridentServo.setPosition(Constants.leftTridentOpenPosition);
+            sleep(200);
+            drive.followTrajectorySequence(leftTrajectoryPark);
+
+
         } else if (propX > 600) { // right spike mark
             drive.followTrajectorySequence(rightTrajectory);
         } else { // middle spike mark
             drive.followTrajectorySequence(middleTrajectory);
         }
-        leftTridentServo.setPosition(Constants.leftTridentOpenPosition);
-        sleep(1000);
+
+        // calibrate for teleop
+        leftTridentServo.setPosition(Constants.leftTridentClosedPosition);
+        trident.setTargetPosition(0);
+        trident.setVelocity(1000);
+        while (trident.isBusy()) sleep(20);
+        lift.setTargetPosition(-100);
+        lift.setVelocity(300);
+        while (lift.isBusy()) sleep(20);
+        lift.setTargetPosition(-30);
+        while (lift.isBusy()) sleep(20);
+        lift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        sleep(500);
     }
 }

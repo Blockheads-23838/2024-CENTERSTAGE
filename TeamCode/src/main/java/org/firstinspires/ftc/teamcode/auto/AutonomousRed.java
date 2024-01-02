@@ -89,18 +89,18 @@ public class AutonomousRed extends LinearOpMode {
         /* -------- RIGHT -------- */
 
         TrajectorySequence rightTrajectoryPurple = drive.trajectorySequenceBuilder(startingPose)
-                .splineToLinearHeading(new Pose2d(25, -39, Math.toRadians(90)), Math.toRadians(90))
+                .splineToLinearHeading(new Pose2d(26, -39, Math.toRadians(90)), Math.toRadians(90))
                 .build();
 
         TrajectorySequence rightTrajectoryYellow = drive.trajectorySequenceBuilder(rightTrajectoryPurple.end())
                 .back(6,
                         SampleMecanumDrive.getVelocityConstraint(6, 142.9, 16.34),
                         SampleMecanumDrive.getAccelerationConstraint(52.48))
-                .splineToSplineHeading(new Pose2d(50, -38, Math.toRadians(180)), Math.toRadians(0))
+                .splineToSplineHeading(new Pose2d(51, -43, Math.toRadians(180)), Math.toRadians(0))
                 .build();
 
         TrajectorySequence rightTrajectoryPark = drive.trajectorySequenceBuilder(rightTrajectoryYellow.end())
-                .splineToLinearHeading(new Pose2d(43, -65, Math.toRadians(180)), Math.toRadians(270))
+                .splineToLinearHeading(new Pose2d(45, -65, Math.toRadians(180)), Math.toRadians(270))
                 .build();
 
         /* -------- MIDDLE -------- */

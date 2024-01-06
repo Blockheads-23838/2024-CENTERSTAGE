@@ -85,8 +85,7 @@ public class AutonomousBlue extends LinearOpMode {
 
 
         TrajectorySequence rightTrajectory = drive.trajectorySequenceBuilder(startingPose)
-                .splineToLinearHeading(new Pose2d(9, 36 - 3, Math.toRadians(180)), Math.toRadians(225))
-                .splineToLinearHeading(new Pose2d(12, 36 - 3, Math.toRadians(180)), Math.toRadians(180))
+                .splineToLinearHeading(new Pose2d(24, 39, Math.toRadians(180)), Math.toRadians(270))
                 .UNSTABLE_addTemporalMarkerOffset(0, () -> {
                     intake.setPower(-1);
                 })
@@ -97,8 +96,8 @@ public class AutonomousBlue extends LinearOpMode {
                 .build();
 
         TrajectorySequence middleTrajectory = drive.trajectorySequenceBuilder(startingPose)
-                .splineToLinearHeading(new Pose2d(17, 34, Math.toRadians(270)), Math.toRadians(270))
-                .splineToLinearHeading(new Pose2d(12, 39, Math.toRadians(270)), Math.toRadians(90))
+                .splineToLinearHeading(new Pose2d(17, 40, Math.toRadians(270)), Math.toRadians(270))
+                .splineToLinearHeading(new Pose2d(20, 48, Math.toRadians(270)), Math.toRadians(90))
                 .UNSTABLE_addTemporalMarkerOffset(0, () -> {
                     intake.setPower(-1);
                 })
@@ -109,7 +108,7 @@ public class AutonomousBlue extends LinearOpMode {
                 .build();
 
         TrajectorySequence leftTrajectory = drive.trajectorySequenceBuilder(startingPose)
-                .splineToLinearHeading(new Pose2d(12, 33, Math.toRadians(0)), Math.toRadians(180))
+                .splineToLinearHeading(new Pose2d(14, 36, Math.toRadians(0)), Math.toRadians(225))
                 .UNSTABLE_addTemporalMarkerOffset(0, () -> {
                     intake.setPower(-1);
                 })
@@ -123,7 +122,7 @@ public class AutonomousBlue extends LinearOpMode {
         double propX = pipeline.getJunctionPoint().x;
         double propArea = pipeline.getPropAreaAttr();
 
-        if (propArea < 10000) { // None detected, we assume left spike mark
+        if (propArea < 15000) { // None detected, we assume left spike mark
             drive.followTrajectorySequence(leftTrajectory);
         } else if (propX > 600) { // right spike mark
             drive.followTrajectorySequence(rightTrajectory);

@@ -83,7 +83,7 @@ public class AutonomousRed extends LinearOpMode {
 
 
         TrajectorySequence rightTrajectory = drive.trajectorySequenceBuilder(startingPose)
-                .splineToLinearHeading(new Pose2d(12, -33, Math.toRadians(0)), Math.toRadians(180))
+                .splineToLinearHeading(new Pose2d(10, -39, Math.toRadians(0)), Math.toRadians(12))
                 .UNSTABLE_addTemporalMarkerOffset(0, () -> {
                     intake.setPower(-1);
                 })
@@ -94,8 +94,8 @@ public class AutonomousRed extends LinearOpMode {
                 .build();
 
         TrajectorySequence middleTrajectory = drive.trajectorySequenceBuilder(startingPose)
-                .splineToLinearHeading(new Pose2d(17, -34, Math.toRadians(90)), Math.toRadians(90))
-                .splineToLinearHeading(new Pose2d(12, -39, Math.toRadians(90)), Math.toRadians(270))
+                .splineToLinearHeading(new Pose2d(10, -40, Math.toRadians(90)), Math.toRadians(90))
+                .splineToLinearHeading(new Pose2d(10, -49, Math.toRadians(90)), Math.toRadians(180))
                 .UNSTABLE_addTemporalMarkerOffset(0, () -> {
                     intake.setPower(-1);
                 })
@@ -107,7 +107,7 @@ public class AutonomousRed extends LinearOpMode {
 
         TrajectorySequence leftTrajectory = drive.trajectorySequenceBuilder(startingPose)
                 .splineToLinearHeading(new Pose2d(9, -33, Math.toRadians(180)), Math.toRadians(135))
-                .splineToLinearHeading(new Pose2d(12, -33, Math.toRadians(180)), Math.toRadians(180))
+                .splineToLinearHeading(new Pose2d(18, -37, Math.toRadians(180)), Math.toRadians(180))
                 .UNSTABLE_addTemporalMarkerOffset(0, () -> {
                     intake.setPower(-1);
                 })
@@ -123,7 +123,7 @@ public class AutonomousRed extends LinearOpMode {
 
         if (propArea < 15000) { // None detected, we assume left spike mark
             drive.followTrajectorySequence(leftTrajectory);
-        } else if (propX > 500) { // right spike mark; different from blue because we start towards the right mark instead of the left
+        } else if (propX > 600) { // right spike mark; different from blue because we start towards the right mark instead of the left
             drive.followTrajectorySequence(rightTrajectory);
         } else { // middle spike mark
             drive.followTrajectorySequence(middleTrajectory);

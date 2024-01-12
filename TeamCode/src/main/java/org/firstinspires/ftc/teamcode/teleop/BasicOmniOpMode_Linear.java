@@ -27,6 +27,7 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
     private DcMotor rightBackDrive = null;
     private DcMotor intake = null;
     private DcMotorEx lift = null;
+    private DcMotorEx climber = null;
     private IMU imu = null;
     private Servo servo = null;
     private Servo crossbow = null;
@@ -47,6 +48,7 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
 
         lift = hardwareMap.get(DcMotorEx.class, "lift");
         intake = hardwareMap.get(DcMotor.class, "intake");
+        climber = hardwareMap.get(DcMotorEx.class, "climber");
 
         servo = hardwareMap.get(Servo.class, "servo");
         crossbow = hardwareMap.get(Servo.class, "crossbow");
@@ -71,6 +73,8 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
         }
 
         runtime.reset();
+        climber.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        climber.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         servo.setPosition(0);
 
         // run until the end of the match (driver presses STOP)
@@ -109,12 +113,17 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
         int liftPos = lift.getCurrentPosition();
         telemetry.addData("lift position: ", liftPos);
         double liftPower;
+        boolean coasting = false;
         if (gamepad2.left_bumper) liftPower = gamepad2.right_stick_y * 1500; // manual override; also former ticks/sec value
         else if (liftPos > Constants.TopLiftPosition && -gamepad2.right_stick_y < 0) liftPower = 0;
-        else if (liftPos < Constants.IntakingLiftPosition && gamepad2.right_trigger > 0.5) liftPower = 1000;
+        else if (liftPos < Constants.IntakingLiftPosition && gamepad2.right_trigger > 0.5) {
+            liftPower = 1000;
+            coasting = true;
+        }
         else if (liftPos < Constants.groundLiftPosition) liftPower = 200;
         else liftPower = gamepad2.right_stick_y * 2500;
-        lift.setVelocity(liftPower + 1);
+        if (coasting) lift.setPower(0);
+        else lift.setVelocity(liftPower + 1);
 
         // Intake stuff
         if (gamepad2.right_trigger > 0.5) {
@@ -135,6 +144,11 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
             // stow/carry position
             servoSetpoint = 0.09;
         }
+
+        // Climber
+        if (gamepad2.dpad_up) climber.setVelocity(72 + climber.getCurrentPosition());
+        else climber.setVelocity(-climber.getCurrentPosition());
+
         // sleep(20);
         telemetry.addData("servoSetpoint: ", servoSetpoint);
         telemetry.addData("Last servo setpoint: ", servo.getPosition());

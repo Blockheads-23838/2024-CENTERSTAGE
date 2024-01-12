@@ -83,19 +83,21 @@ public class TwoPlusZeroBlueAuto extends LinearOpMode {
 
 
         TrajectorySequence rightTrajectory = drive.trajectorySequenceBuilder(startingPose)
-                .splineToLinearHeading(new Pose2d(24 - 54, 39, Math.toRadians(180)), Math.toRadians(270))
+                .splineToSplineHeading(new Pose2d(-33, 33, Math.toRadians(180)), Math.toRadians(0))
                 .UNSTABLE_addTemporalMarkerOffset(0, () -> {
-                    intake.setPower(-1);
                 })
                 .UNSTABLE_addTemporalMarkerOffset(1, () -> {
-                    intake.setPower(0);
                 })
                 .waitSeconds(1)
+                .setTangent(Math.toRadians(90))
+                .splineToLinearHeading(new Pose2d(-36, 60, Math.toRadians(180)), Math.toRadians(90))
+                .setTangent(0)
+                .splineToLinearHeading(new Pose2d(45, 36, Math.toRadians(180)), Math.toRadians(-50))
                 .build();
 
         TrajectorySequence middleTrajectory = drive.trajectorySequenceBuilder(startingPose)
-                .splineToLinearHeading(new Pose2d(17 - 54, 40, Math.toRadians(270)), Math.toRadians(270))
-                .splineToLinearHeading(new Pose2d(20 - 54, 48, Math.toRadians(270)), Math.toRadians(90))
+                .splineToLinearHeading(new Pose2d(17 - 54, 30, Math.toRadians(270)), Math.toRadians(0))
+                .splineToLinearHeading(new Pose2d(20 - 54, 36, Math.toRadians(270)), Math.toRadians(90))
                 .UNSTABLE_addTemporalMarkerOffset(0, () -> {
                     intake.setPower(-1);
                 })
@@ -103,10 +105,14 @@ public class TwoPlusZeroBlueAuto extends LinearOpMode {
                     intake.setPower(0);
                 })
                 .waitSeconds(1)
+                .setTangent(Math.toRadians(135))
+                .splineToLinearHeading(new Pose2d(-48, 60, Math.toRadians(180)), Math.toRadians(90))
+                .setTangent(0)
+                .splineToLinearHeading(new Pose2d(45, 36, Math.toRadians(180)), Math.toRadians(-50))
                 .build();
 
         TrajectorySequence leftTrajectory = drive.trajectorySequenceBuilder(startingPose)
-                .splineToLinearHeading(new Pose2d(16 - 54, 36, Math.toRadians(0)), Math.toRadians(225))
+                .splineToLinearHeading(new Pose2d(16 - 54, 33, Math.toRadians(0)), Math.toRadians(300)) // used to be 225
                 .UNSTABLE_addTemporalMarkerOffset(0, () -> {
                     intake.setPower(-1);
                 })
@@ -114,9 +120,10 @@ public class TwoPlusZeroBlueAuto extends LinearOpMode {
                     intake.setPower(0);
                 })
                 .waitSeconds(1)
-                .back(6)
-                .splineToSplineHeading(new Pose2d(-35, 64, Math.toRadians(180)), Math.toRadians(0))
-                .splineToLinearHeading(new Pose2d(50, 40, Math.toRadians(180)), Math.toRadians(-45))
+                .setTangent(135)
+                .splineToLinearHeading(new Pose2d(-45, 60, Math.toRadians(180)), Math.toRadians(90))
+                .setTangent(0)
+                .splineToLinearHeading(new Pose2d(45, 36, Math.toRadians(180)), Math.toRadians(-50))
                 .build();
 
 

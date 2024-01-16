@@ -15,6 +15,8 @@ import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
 
+import java.util.ArrayList;
+
 @Config
 @com.qualcomm.robotcore.eventloop.opmode.Autonomous (name = "Red auto")
 public class AutonomousRed extends LinearOpMode {
@@ -22,15 +24,14 @@ public class AutonomousRed extends LinearOpMode {
     private DcMotorEx lift;
     private Servo servo;
     private DcMotor intake = null;
+    DcMotorEx leftFrontDrive;
+    DcMotorEx leftBackDrive;
+    DcMotorEx rightFrontDrive;
+    DcMotorEx rightBackDrive;
+
+    ArrayList<DcMotorEx> driveMotors = new ArrayList<>();
     OpenCvCamera camera;
     PipelineRed pipeline = new PipelineRed();
-
-    public static Pose2d toPropPose = new Pose2d(9, 36 - 6, Math.toRadians(180));
-    public static double toPropPoseAngle = 225;
-    public static Pose2d pixelDropPose = new Pose2d(12, 36 - 6, Math.toRadians(180));
-    public static double pixelDropPoseAngle = 180;
-    // private VisionPortal visionPortal;               // Used to manage the video source.
-    // private AprilTagProcessor aprilTag;              // Used for managing the AprilTag detection process.
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -77,70 +78,93 @@ public class AutonomousRed extends LinearOpMode {
         lift.setVelocity(1);
 
         // Drivetrain activation
-        SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap);
-        Pose2d startingPose = new Pose2d(15, -63, Math.toRadians(90));
-        drive.setPoseEstimate(startingPose);
+        leftFrontDrive = hardwareMap.get(DcMotorEx.class, "left_front");
+        leftBackDrive = hardwareMap.get(DcMotorEx.class, "left_back");
+        rightFrontDrive = hardwareMap.get(DcMotorEx.class, "right_front");
+        rightBackDrive = hardwareMap.get(DcMotorEx.class, "right_back");
 
+        leftFrontDrive.setDirection(Constants.motorDirections.get("left_front"));
+        leftBackDrive.setDirection(Constants.motorDirections.get("left_back"));
+        rightFrontDrive.setDirection(Constants.motorDirections.get("right_front"));
+        rightBackDrive.setDirection(Constants.motorDirections.get("right_back"));
 
-        TrajectorySequence rightTrajectory = drive.trajectorySequenceBuilder(startingPose)
-                .splineToLinearHeading(new Pose2d(10 + 8, -38, Math.toRadians(0)), Math.toRadians(12))
-                .UNSTABLE_addTemporalMarkerOffset(0, () -> {
-                    intake.setPower(-1);
-                })
-                .UNSTABLE_addTemporalMarkerOffset(1, () -> {
-                    intake.setPower(0);
-                })
-                .waitSeconds(1)
-                .build();
-
-        TrajectorySequence middleTrajectory = drive.trajectorySequenceBuilder(startingPose)
-                .splineToLinearHeading(new Pose2d(10, -36, Math.toRadians(90)), Math.toRadians(90))
-                .splineToLinearHeading(new Pose2d(13, -40, Math.toRadians(90)), Math.toRadians(180))
-                .UNSTABLE_addTemporalMarkerOffset(0, () -> {
-                    intake.setPower(-1);
-                })
-                .UNSTABLE_addTemporalMarkerOffset(1, () -> {
-                    intake.setPower(0);
-                })
-                .waitSeconds(1)
-                .build();
-
-        TrajectorySequence leftTrajectory = drive.trajectorySequenceBuilder(startingPose)
-                .splineToLinearHeading(new Pose2d(9, -33, Math.toRadians(180)), Math.toRadians(135))
-                .splineToLinearHeading(new Pose2d(18, -37, Math.toRadians(180)), Math.toRadians(180))
-                .UNSTABLE_addTemporalMarkerOffset(0, () -> {
-                    intake.setPower(-1);
-                })
-                .UNSTABLE_addTemporalMarkerOffset(1, () -> {
-                    intake.setPower(0);
-                })
-                .waitSeconds(1)
-                .build();
-
+        driveMotors.add(leftFrontDrive);
+        driveMotors.add(leftBackDrive);
+        driveMotors.add(rightFrontDrive);
+        driveMotors.add(rightBackDrive);
 
         double propX = pipeline.getJunctionPoint().x;
         double propArea = pipeline.getPropAreaAttr();
 
+        double autoPower = 500;
+
+        goTo(1175, 0, 0, autoPower, true);
+
         if (propArea < 15000) { // None detected, we assume left spike mark
-            drive.followTrajectorySequence(leftTrajectory);
-        } else if (propX > 600) { // right spike mark; different from blue because we start towards the right mark instead of the left
-            drive.followTrajectorySequence(rightTrajectory);
+            goTo(100, 0, 0, autoPower, true);
+            goTo(0, 0, -90, autoPower, true);
+        } else if (propX > 600) { // right spike mark
+            goTo(0, 0, 90, autoPower, true);
         } else { // middle spike mark
-            drive.followTrajectorySequence(middleTrajectory);
+            goTo(0, 200, 0, autoPower, true);
+            // the forward already aligned us lololol
+        }
+        sleep(500);
+        intake.setPower(-1);
+        sleep(1000);
+        intake.setPower(0);
+
+    }
+    public void goTo(double forward, double strafe, double yaw, double powercoef, boolean waitToFinish) {
+        /**
+         * Moves robot-centrically.  All is in ticks except yaw, which is approximately degrees such that 90 turns the robot 90 degrees clockwise.
+         */
+        yaw *= 11;
+        double leftFrontPower = powercoef * (forward + strafe + yaw);
+        double rightFrontPower = powercoef * (forward - strafe - yaw);
+        double leftBackPower = powercoef * (forward - strafe + yaw);
+        double rightBackPower = powercoef * (forward + strafe - yaw);
+
+        // Normalize the values so no wheel power exceeds 100%
+        // This ensures that the robot maintains the desired motion.
+        double max = Math.max(Math.abs(leftFrontPower), Math.abs(rightFrontPower));
+        max = Math.max(max, Math.abs(leftBackPower));
+        max = Math.max(max, Math.abs(rightBackPower));
+
+        if (max > 2000) {
+            leftFrontPower /= max;
+            rightFrontPower /= max;
+            leftBackPower /= max;
+            rightBackPower /= max;
+            leftFrontPower *= powercoef;
+            leftBackPower *= powercoef;
+            rightFrontPower *= powercoef;
+            rightBackPower *= powercoef;
         }
 
-        sleep(400);
-        lift.setTargetPosition(1500);
-        lift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        lift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        lift.setVelocity(1000);
-        while (lift.isBusy()) telemetry.addData("lift position: ", lift.getCurrentPosition());
-        // wiggle the pixel off
-        for (int i = 0; i < 20; i++) {
-            servo.setPosition(0.19);
-            sleep(100);
-            servo.setPosition(0.1);
-            sleep(100);
+        for (DcMotorEx motor : driveMotors) {
+            motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        }
+        leftFrontDrive.setTargetPosition((int) (forward + strafe + yaw));
+        leftBackDrive.setTargetPosition((int) (forward - strafe + yaw));
+        rightFrontDrive.setTargetPosition((int) (forward - strafe - yaw));
+        rightBackDrive.setTargetPosition((int) (forward + strafe - yaw));
+
+        for (DcMotorEx motor : driveMotors) {
+            motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        }
+
+        leftFrontDrive.setVelocity(leftFrontPower);
+        leftBackDrive.setVelocity(leftBackPower);
+        rightFrontDrive.setVelocity(rightFrontPower);
+        rightBackDrive.setVelocity(rightBackPower);
+
+        if (waitToFinish) while (leftFrontDrive.isBusy()) {
+            telemetry.addData("lf power: ", leftFrontPower);
+            telemetry.addData("lf tgt position: ", leftFrontDrive.getTargetPosition());
+            telemetry.addData("lf position: ", leftFrontDrive.getCurrentPosition());
+            telemetry.update();
         }
     }
 }

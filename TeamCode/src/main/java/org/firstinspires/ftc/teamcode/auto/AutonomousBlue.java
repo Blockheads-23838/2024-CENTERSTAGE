@@ -96,8 +96,8 @@ public class AutonomousBlue extends LinearOpMode {
                 .build();
 
         TrajectorySequence middleTrajectory = drive.trajectorySequenceBuilder(startingPose)
-                .splineToLinearHeading(new Pose2d(17, 40, Math.toRadians(270)), Math.toRadians(270))
-                .splineToLinearHeading(new Pose2d(20, 48, Math.toRadians(270)), Math.toRadians(90))
+                .splineToLinearHeading(new Pose2d(17, 46, Math.toRadians(270)), Math.toRadians(270))
+                .splineToLinearHeading(new Pose2d(20, 40, Math.toRadians(270)), Math.toRadians(90))
                 .UNSTABLE_addTemporalMarkerOffset(0, () -> {
                     intake.setPower(-1);
                 })
@@ -108,7 +108,7 @@ public class AutonomousBlue extends LinearOpMode {
                 .build();
 
         TrajectorySequence leftTrajectory = drive.trajectorySequenceBuilder(startingPose)
-                .splineToLinearHeading(new Pose2d(14, 36, Math.toRadians(0)), Math.toRadians(225))
+                .splineToLinearHeading(new Pose2d(16, 29, Math.toRadians(0)), Math.toRadians(225))
                 .UNSTABLE_addTemporalMarkerOffset(0, () -> {
                     intake.setPower(-1);
                 })

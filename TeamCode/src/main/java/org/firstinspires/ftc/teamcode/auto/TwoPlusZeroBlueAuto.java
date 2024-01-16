@@ -97,7 +97,7 @@ public class TwoPlusZeroBlueAuto extends LinearOpMode {
 
         TrajectorySequence middleTrajectory = drive.trajectorySequenceBuilder(startingPose)
                 .splineToLinearHeading(new Pose2d(17 - 54, 30, Math.toRadians(270)), Math.toRadians(0))
-                .splineToLinearHeading(new Pose2d(20 - 54, 36, Math.toRadians(270)), Math.toRadians(90))
+                .splineToLinearHeading(new Pose2d(20 - 54, 39, Math.toRadians(270)), Math.toRadians(90))
                 .UNSTABLE_addTemporalMarkerOffset(0, () -> {
                     intake.setPower(-1);
                 })
@@ -112,7 +112,7 @@ public class TwoPlusZeroBlueAuto extends LinearOpMode {
                 .build();
 
         TrajectorySequence leftTrajectory = drive.trajectorySequenceBuilder(startingPose)
-                .splineToLinearHeading(new Pose2d(16 - 54, 33, Math.toRadians(0)), Math.toRadians(300)) // used to be 225
+                .splineToLinearHeading(new Pose2d(17 - 54, 60, Math.toRadians(0)), Math.toRadians(300)) // used to be 225
                 .UNSTABLE_addTemporalMarkerOffset(0, () -> {
                     intake.setPower(-1);
                 })
@@ -123,7 +123,7 @@ public class TwoPlusZeroBlueAuto extends LinearOpMode {
                 .setTangent(135)
                 .splineToLinearHeading(new Pose2d(-45, 60, Math.toRadians(180)), Math.toRadians(90))
                 .setTangent(0)
-                .splineToLinearHeading(new Pose2d(45, 36, Math.toRadians(180)), Math.toRadians(-50))
+                .splineToLinearHeading(new Pose2d(45, 45, Math.toRadians(180)), Math.toRadians(-45))
                 .build();
 
 
@@ -132,24 +132,40 @@ public class TwoPlusZeroBlueAuto extends LinearOpMode {
 
         if (propArea < 15000) { // None detected, we assume left spike mark
             drive.followTrajectorySequence(leftTrajectory);
+
+            sleep(400);
+            lift.setTargetPosition(2000);
+            lift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            lift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            lift.setVelocity(500);
+            while (lift.isBusy()) telemetry.addData("lift position: ", lift.getCurrentPosition());
+
+            drive.followTrajectorySequence(drive.trajectorySequenceBuilder(leftTrajectory.end()).back(6).forward(12).build());
         } else if (propX > 600) { // right spike mark
             drive.followTrajectorySequence(rightTrajectory);
+
+            sleep(400);
+            lift.setTargetPosition(2000);
+            lift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            lift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            lift.setVelocity(1000);
+            while (lift.isBusy()) telemetry.addData("lift position: ", lift.getCurrentPosition());
         } else { // middle spike mark
             drive.followTrajectorySequence(middleTrajectory);
 
-        }
+            sleep(400);
+            lift.setTargetPosition(2000);
+            lift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            lift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            lift.setVelocity(1000);
+            while (lift.isBusy()) telemetry.addData("lift position: ", lift.getCurrentPosition());
 
-        sleep(400);
-        lift.setTargetPosition(1500);
-        lift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        lift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        lift.setVelocity(1000);
-        while (lift.isBusy()) telemetry.addData("lift position: ", lift.getCurrentPosition());
+        }
         // wiggle the pixel off
         for (int i = 0; i < 20; i++) {
-            servo.setPosition(0.19);
+            servo.setPosition(0.22);
             sleep(100);
-            servo.setPosition(0.1);
+            servo.setPosition(0.2);
             sleep(100);
         }
     }

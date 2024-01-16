@@ -15,16 +15,16 @@ public class MeepMeepTest {
                 .setConstraints(52.5, 52.5, 142.9, Math.toRadians(180), 15)
                 .followTrajectorySequence(drive ->
                         drive.trajectorySequenceBuilder(new Pose2d(15 - 54, 60+3, Math.toRadians(270)))
-                                .splineToSplineHeading(new Pose2d(-33, 33, Math.toRadians(180)), Math.toRadians(0))
+                                .splineToLinearHeading(new Pose2d(16 - 54, 33, Math.toRadians(0)), Math.toRadians(300)) // used to be 225
                                 .UNSTABLE_addTemporalMarkerOffset(0, () -> {
                                 })
                                 .UNSTABLE_addTemporalMarkerOffset(1, () -> {
                                 })
                                 .waitSeconds(1)
-                                .setTangent(Math.toRadians(90))
-                                .splineToLinearHeading(new Pose2d(-36, 60, Math.toRadians(180)), Math.toRadians(90))
+                                .setTangent(135)
+                                .splineToLinearHeading(new Pose2d(-45, 60, Math.toRadians(180)), Math.toRadians(90))
                                 .setTangent(0)
-                                .splineToLinearHeading(new Pose2d(45, 36, Math.toRadians(180)), Math.toRadians(-50))
+                                .splineToLinearHeading(new Pose2d(45, 43, Math.toRadians(180)), Math.toRadians(-45))
                                 .build()
                 );
 

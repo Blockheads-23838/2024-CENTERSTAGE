@@ -70,6 +70,7 @@ public class AutonomousRed extends LinearOpMode {
             telemetry.addLine("Place the purple pixel between the second and third compliant wheels from the left.");
             telemetry.addLine("It should be roughly centered.  It should be as close to touching the ground as possible WITHOUT touching the ground.");
             telemetry.addLine("Ensure the intake is at the bottom of its backlash-induced free-spinning zone so the pixel doesn't scrape the ground.");
+            telemetry.addLine("The pan should be FULLY ON THE GROUND when the program starts.");
             telemetry.update();
         }
 

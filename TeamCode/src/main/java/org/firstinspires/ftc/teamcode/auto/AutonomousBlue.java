@@ -68,6 +68,7 @@ public class AutonomousBlue extends LinearOpMode {
             telemetry.addLine("Place the purple pixel between the second and third compliant wheels from the left.");
             telemetry.addLine("It should be roughly centered.  It should be as close to touching the ground as possible WITHOUT touching the ground.");
             telemetry.addLine("Ensure the intake is at the bottom of its backlash-induced free-spinning zone so the pixel doesn't scrape the ground.");
+            telemetry.addLine("The pan should be FULLY ON THE GROUND when the program starts.");
             telemetry.update();
         }
 
@@ -101,16 +102,30 @@ public class AutonomousBlue extends LinearOpMode {
         if (propArea < 15000) { // None detected, we assume left spike mark
             goTo(100, 0, 0, autoPower, true);
             goTo(0, 0, -90, autoPower, true);
-        } else if (propX > 600) { // right spike mark
+            sleep(500);
+            intake.setPower(-1);
+            sleep(1000);
+            intake.setPower(0);
+            sleep(500);
             goTo(0, 0, 90, autoPower, true);
+            goTo(-100, 0, 0, autoPower, true);
+            goTo(-1175, 0, 0, autoPower, true);
+        } else if (propX > 600) { // right spike mark
+            goTo(-200, 0, 0, autoPower, true);
+            goTo(0, -100, 90, autoPower, true);
+            sleep(500);
+            intake.setPower(-1);
+            sleep(1000);
+            intake.setPower(0);
+            sleep(500);
         } else { // middle spike mark
             goTo(0, 300, 0, autoPower, true);
-            // the forward already aligned us lololol
+            sleep(500);
+            intake.setPower(-1);
+            sleep(1000);
+            intake.setPower(0);
+            sleep(500);
         }
-        sleep(500);
-        intake.setPower(-1);
-        sleep(1000);
-        intake.setPower(0);
 
     }
     public void goTo(double forward, double strafe, double yaw, double powercoef, boolean waitToFinish) {

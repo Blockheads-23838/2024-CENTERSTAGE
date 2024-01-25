@@ -10,6 +10,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.TouchSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -31,6 +32,7 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
     private IMU imu = null;
     private Servo servo = null;
     private Servo crossbow = null;
+    private TouchSensor liftLimit = null;
     double powercoef = 0.5;
     private boolean fieldCentric = false;
 
@@ -53,6 +55,8 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
         servo = hardwareMap.get(Servo.class, "servo");
         crossbow = hardwareMap.get(Servo.class, "crossbow");
 
+        liftLimit = hardwareMap.get(TouchSensor.class, "lift_limit");
+
         leftFrontDrive.setDirection(Constants.motorDirections.get("left_front"));
         leftBackDrive.setDirection(Constants.motorDirections.get("left_back"));
         rightFrontDrive.setDirection(Constants.motorDirections.get("right_front"));
@@ -69,7 +73,12 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
 
         // Wait for the game to start (driver presses PLAY)
         while(!isStarted() && !isStopRequested()) {
-            telemetry.addData("Lift joystick position: ", gamepad2.right_stick_y);
+            if (gamepad2.a) {
+                lift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                lift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            }
+            telemetry.addData("lift position: ", lift.getCurrentPosition());
+            telemetry.update();
         }
 
         runtime.reset();
@@ -100,6 +109,7 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
             handleLift();
 
             HandleDrivetrain();
+            telemetry.addData("lift limit status: ", liftLimit.isPressed());
             telemetry.update();
         }
     }
@@ -116,11 +126,13 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
         boolean coasting = false;
         if (gamepad2.left_bumper) liftPower = gamepad2.right_stick_y * 1500; // manual override; also former ticks/sec value
         else if (liftPos > Constants.TopLiftPosition && -gamepad2.right_stick_y < 0) liftPower = 0;
-        else if (liftPos < Constants.IntakingLiftPosition && gamepad2.right_trigger > 0.5) {
+        /*else if (liftPos < Constants.IntakingLiftPosition && gamepad2.right_trigger > 0.5) {
             liftPower = 1000;
             coasting = true;
         }
-        else if (liftPos < Constants.groundLiftPosition) liftPower = 200;
+
+         */
+        else if (liftPos < Constants.groundLiftPosition) liftPower = 200; // Never let the lift go under 0.
         else liftPower = gamepad2.right_stick_y * 2500;
         if (coasting) lift.setPower(0);
         else lift.setVelocity(liftPower + 1);
@@ -136,17 +148,18 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
         double servoSetpoint;
         if (gamepad2.y) {
             servoSetpoint = 0.22; // dropping pixels; 0.19 is decent 14.57 12.22.23
-        } else if (gamepad2.right_trigger > 0.5 ||
-                (lift.getCurrentPosition() < Constants.ClearIntakeLiftPosition && -gamepad2.right_stick_y > 0)){
+        } else if (gamepad2.right_trigger > 0.5 /* ||
+                (lift.getCurrentPosition() < Constants.ClearIntakeLiftPosition && -gamepad2.right_stick_y > 0) */){
             // put pan down if we're intaking or clearing the intake
-            servoSetpoint = 0.00;
+            // TODO: find more shallow angle?
+            servoSetpoint = Constants.IntakingServoPosition;
         } else {
             // stow/carry position
             servoSetpoint = 0.09;
         }
 
         // Climber
-        if (gamepad2.dpad_up) climber.setVelocity(72 + climber.getCurrentPosition());
+        if (gamepad2.dpad_up) climber.setVelocity(4000 + climber.getCurrentPosition());
         else climber.setVelocity(-climber.getCurrentPosition());
 
         // sleep(20);

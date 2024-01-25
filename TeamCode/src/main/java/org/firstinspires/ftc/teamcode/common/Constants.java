@@ -1,8 +1,11 @@
 package org.firstinspires.ftc.teamcode.common;
 
 import java.util.HashMap;
+
+import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.DcMotorSimple.Direction;
 
+@Config
 public class Constants {
     // this is a very useful class. Put constants here that you'll use across multiple programs
     // (e.g. gear ratios, target positions) so that you don't have to change the values in all the programs
@@ -18,6 +21,8 @@ public class Constants {
     }};
     public static final int TopLiftPosition = 3060;
     public static final int ClearIntakeLiftPosition = 800;
-    public static final int IntakingLiftPosition = 0;
-    public static final int groundLiftPosition = -120;
+    public static final int IntakingLiftPosition = 120;
+    public static final int groundLiftPosition = 0;
+
+    public static double IntakingServoPosition = 0.05; // 0.05 works great in solo (only leo) testing
 }

@@ -1,24 +1,18 @@
 package org.firstinspires.ftc.teamcode.teleop;
 
-import static java.lang.Math.copySign;
-import static java.lang.Math.max;
-import static java.lang.Math.min;
-
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.hardware.TouchSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.common.Constants;
-import org.firstinspires.ftc.teamcode.common.Button;
 
-@TeleOp(name="Basic: Omni Linear OpMode", group="Linear OpMode")
-public class BasicOmniOpMode_Linear extends LinearOpMode {
+@TeleOp(name="One person teleop", group="Linear OpMode")
+public class OnePersonTeleop extends LinearOpMode {
 
     // Declare OpMode members for each of the 4 motors.
     private ElapsedTime runtime = new ElapsedTime();
@@ -32,7 +26,6 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
     private IMU imu = null;
     private Servo servo = null;
     private Servo crossbow = null;
-    private TouchSensor liftLimit = null;
     double powercoef = 0.5;
     private boolean fieldCentric = false;
 
@@ -55,8 +48,6 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
         servo = hardwareMap.get(Servo.class, "servo");
         crossbow = hardwareMap.get(Servo.class, "crossbow");
 
-        liftLimit = hardwareMap.get(TouchSensor.class, "lift_limit");
-
         leftFrontDrive.setDirection(Constants.motorDirections.get("left_front"));
         leftBackDrive.setDirection(Constants.motorDirections.get("left_back"));
         rightFrontDrive.setDirection(Constants.motorDirections.get("right_front"));
@@ -73,12 +64,7 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
 
         // Wait for the game to start (driver presses PLAY)
         while(!isStarted() && !isStopRequested()) {
-            if (gamepad2.a) {
-                lift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                lift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            }
-            telemetry.addData("lift position: ", lift.getCurrentPosition());
-            telemetry.update();
+            telemetry.addData("Lift joystick position: ", gamepad2.right_stick_y);
         }
 
         runtime.reset();
@@ -109,7 +95,6 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
             handleLift();
 
             HandleDrivetrain();
-            telemetry.addData("lift limit status: ", liftLimit.isPressed());
             telemetry.update();
         }
     }
@@ -123,12 +108,17 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
         int liftPos = lift.getCurrentPosition();
         telemetry.addData("lift position: ", liftPos);
         double liftPower;
+        boolean coasting = false;
         if (gamepad2.left_bumper) liftPower = gamepad2.right_stick_y * 1500; // manual override; also former ticks/sec value
-        else if (liftPos > Constants.TopLiftPosition && -gamepad2.right_stick_y < 0) liftPower = 0; // Upper limit
-        else if (liftPos < Constants.groundLiftPosition && gamepad2.right_stick_y <= 0) liftPower = -liftPos*10; // Lower limit
-        else if (gamepad2.right_stick_y < 0) liftPower = gamepad2.right_stick_y * (lift.getCurrentPosition()*3 + 200); // If we're going down, act as a P controller to reduce overshoot
+        else if (liftPos > Constants.TopLiftPosition && -gamepad2.right_stick_y < 0) liftPower = 0;
+        else if (liftPos < Constants.IntakingLiftPosition && gamepad2.right_trigger > 0.5) {
+            liftPower = 1000;
+            coasting = true;
+        }
+        else if (liftPos < Constants.groundLiftPosition) liftPower = 200;
         else liftPower = gamepad2.right_stick_y * 2500;
-        lift.setVelocity(liftPower + 1);
+        if (coasting) lift.setPower(0);
+        else lift.setVelocity(liftPower + 1);
 
         // Intake stuff
         if (gamepad2.right_trigger > 0.5) {
@@ -141,11 +131,10 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
         double servoSetpoint;
         if (gamepad2.y) {
             servoSetpoint = 0.22; // dropping pixels; 0.19 is decent 14.57 12.22.23
-        } else if (gamepad2.right_trigger > 0.5 /* ||
-                (lift.getCurrentPosition() < Constants.ClearIntakeLiftPosition && -gamepad2.right_stick_y > 0) */){
+        } else if (gamepad2.right_trigger > 0.5 ||
+                (lift.getCurrentPosition() < Constants.ClearIntakeLiftPosition && -gamepad2.right_stick_y > 0)){
             // put pan down if we're intaking or clearing the intake
-            // TODO: find more shallow angle?
-            servoSetpoint = Constants.IntakingServoPosition;
+            servoSetpoint = 0.00;
         } else {
             // stow/carry position
             servoSetpoint = 0.09;
@@ -168,13 +157,15 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
         if (gamepad1.b) imu.resetYaw();
         telemetry.addData("FIELD_CENTRIC: ", fieldCentric);
 
-        if(gamepad1.right_bumper) powercoef = 1;
+        if(gamepad2.right_bumper) powercoef = 1;
         else if (gamepad1.left_trigger > 0.3) powercoef = 0.2;
         else powercoef = 0.4;
 
-        double forward = -gamepad1.left_stick_y; /* Invert stick Y axis */
-        double strafe = gamepad1.left_stick_x;
-        double yaw = gamepad1.right_stick_x;
+        double forward = -gamepad2.left_stick_y; /* Invert stick Y axis */
+        double strafe = 0;
+        if (gamepad2.dpad_left) strafe = -0.4;
+        else if (gamepad2.dpad_right) strafe = 0.4;
+        double yaw = gamepad2.left_stick_x;
 
         if (fieldCentric) {
             double gyro_radians = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);

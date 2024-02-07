@@ -37,12 +37,15 @@ public class BackdropAprilTag {
     private AprilTagProcessor aprilTag;
 
     // As seen from behind.
+    // TODO: adjust relative to auto hook, not robot center
     private static final double DISTANCE_CAMERA_LENS_TO_ROBOT_CENTER = 9.5; // LCHS 23838
     private static final double OFFSET_CAMERA_LENS_FROM_ROBOT_CENTER = -6.125; // LCHS 23838
 
     //**TODO Tune the next four values later - after the basic movement is working ...
-    private static final double STRAFE_ADJUSTMENT_PERCENT = 0.0; // LCHS 23838
-    private static final double OUTSIDE_STRAFE_ADJUSTMENT = 0.0; // LCHS 23838
+    private static final double STRAFE_ADJUSTMENT_PERCENT = 0.20; // LCHS 23838
+    // lhack- this is how much more left or right we have to go than the left or right apriltags to score.  has to be adjusted on an actual backboard.
+    private static final double OUTSIDE_STRAFE_ADJUSTMENT = 0.0; // LCHS 23838.
+    // lhack- this is how much to adjust before scoring yellow on middle, so we can choose between the left and right slots and avoid the dreadful pixel on crest.
     private static final double YELLOW_PIXEL_ADJUSTMENT = 0.0; // LCHS 23838
     private static final double DISTANCE_ADJUSTMENT_PERCENT = 0.0; // LCHS 23838
 
@@ -117,7 +120,7 @@ public class BackdropAprilTag {
             double strafeVelocity = shortDistanceVelocity(distanceToStrafe);
             RobotLog.dd(TAG, "Calculated distance to strafe " + distanceToStrafe);
 
-            // Add in strafe percentage adjustment.
+            // Add in strafe percentage adjustment.  Not related to the subsequent strafeAdjustment.
             if (STRAFE_ADJUSTMENT_PERCENT != 0.0) {
                 distanceToStrafe += (distanceToStrafe * STRAFE_ADJUSTMENT_PERCENT);
                 RobotLog.dd(TAG, "Adjusting distance to strafe by a factor of " + STRAFE_ADJUSTMENT_PERCENT + " for a distance to strafe of " + distanceToStrafe);
@@ -155,7 +158,8 @@ public class BackdropAprilTag {
                 // strafeDirection is either 90.0 for a strafe to the left or -90.0 for a strafe
                 // to the right.
                 int targetClicks = (int) (distanceToStrafe * 50);
-                container.goToVector(strafeDirection, targetClicks, strafeVelocity, true);
+                container.goTo(0, Math.copySign(targetClicks, -strafeDirection), 0, strafeVelocity, true);
+                // container.goToVector(strafeDirection, targetClicks, strafeVelocity, true);
                 // driveTrainMotion.straight(targetClicks, strafeDirection, strafeVelocity, 0, desiredHeading);
             }
 
@@ -343,7 +347,9 @@ public class BackdropAprilTag {
     // short distances (such as 1.0") at .3 velocity while at longer
     // distances we sometimes want to keep the low velocity.
     private double shortDistanceVelocity(double pDistance) {
-        return Math.abs(pDistance) < 2.0 ? 0.5 : 0.3;
+        // TODO: adjust? -lhack
+        // return Math.abs(pDistance) < 2.0 ? 0.5 : 0.3; original phil's code
+        return Math.abs(pDistance) < 2.0? 1.5 : 1;
     }
 
 }

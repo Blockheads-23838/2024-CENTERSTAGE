@@ -37,7 +37,7 @@ public class RobotContainer {
     public DcMotorEx rightFrontDrive = null; // right front motor/wheel
     public DcMotorEx leftBackDrive = null; // left back motor/wheel
     public DcMotorEx rightBackDrive = null; // right back motor/wheel
-    public ArrayList <DcMotorEx> driveMotors;
+    public ArrayList <DcMotorEx> driveMotors = new ArrayList<>();
     public DcMotorEx lift = null;
     public DcMotor intake = null;
     public Servo servo = null;
@@ -98,7 +98,7 @@ public class RobotContainer {
     }
 
     public void goToVector(double directionDegrees, double magnitude, double powercoef, boolean waitToFinish) {
-        double directionRadians = 3.14159265358979323 * 2 / 360;
+        double directionRadians = Math.toRadians(directionDegrees);
         goTo(magnitude * Math.cos(directionRadians), Math.sin(-directionRadians), 0, powercoef, waitToFinish);
     }
 

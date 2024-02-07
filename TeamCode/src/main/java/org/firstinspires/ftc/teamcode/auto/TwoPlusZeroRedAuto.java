@@ -65,7 +65,6 @@ public class TwoPlusZeroRedAuto extends LinearOpMode {
         autoHook = hardwareMap.get(Servo.class, "auto_hook");
         autoHook.setPosition(Constants.autoHookStowPosition);
 
-        BackdropAprilTag backdropAprilTag = new BackdropAprilTag(this);
         RobotContainer container = new RobotContainer();
 
         // Camera activation
@@ -113,6 +112,7 @@ public class TwoPlusZeroRedAuto extends LinearOpMode {
         }
 
         AprilTagUtils.AprilTagId aprilTagEnum = AprilTagUtils.AprilTagId.getEnumValue(tagIdInt);
+        BackdropAprilTag backdropAprilTag = new BackdropAprilTag(this);
 
         /*
         servo.setPosition(0.09);
@@ -139,9 +139,13 @@ public class TwoPlusZeroRedAuto extends LinearOpMode {
             goTo(-400, 0, 90, autoPower, true);
         }
          */
+        for (int i = 0; i < 4000; i++) {
+            sleep(1);
+        }
         container.init(this);
-        backdropAprilTag.driveToBackdropAprilTag(aprilTagEnum, 3, BackdropAprilTag.Direction.FORWARD, container);
+        backdropAprilTag.driveToBackdropAprilTag(aprilTagEnum, 0, BackdropAprilTag.Direction.FORWARD, container);
         autoHook.setPosition(Constants.autoHookYellowDropPosition);
+        sleep(3000);
 
     }
     public void goTo(double forward, double strafe, double yaw, double powercoef, boolean waitToFinish) {

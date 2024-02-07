@@ -37,11 +37,12 @@ public class BackdropAprilTag {
     private AprilTagProcessor aprilTag;
 
     // As seen from behind.
-    // TODO: adjust relative to auto hook, not robot center
     private static final double DISTANCE_CAMERA_LENS_TO_ROBOT_CENTER = 9.5; // LCHS 23838
     private static final double OFFSET_CAMERA_LENS_FROM_ROBOT_CENTER = -6.125; // LCHS 23838
+    private static final double OFFSET_SCORING_MECHANISM_FROM_ROBOT_CENTER = 0;
 
     //**TODO Tune the next four values later - after the basic movement is working ...
+    private static final double TURN_ADJUSTMENT_PERCENT = 0.20;
     private static final double STRAFE_ADJUSTMENT_PERCENT = 0.20; // LCHS 23838
     // lhack- this is how much more left or right we have to go than the left or right apriltags to score.  has to be adjusted on an actual backboard.
     private static final double OUTSIDE_STRAFE_ADJUSTMENT = 0.0; // LCHS 23838.
@@ -112,6 +113,20 @@ public class BackdropAprilTag {
         RobotLog.dd(TAG, "Angle from robot center to AprilTag " + angleFromRobotCenterToAprilTag);
         RobotLog.dd(TAG, "Distance from robot center to AprilTag " + distanceFromRobotCenterToAprilTag);
 
+        if (Math.abs(detectionData.ftcDetectionData.ftcPose.yaw) >= 2.0) {
+            // Turn the robot so it faces the AprilTag.
+            double angleToTurn = -detectionData.ftcDetectionData.ftcPose.yaw;
+            if (TURN_ADJUSTMENT_PERCENT != 0.0) {
+                angleToTurn += (angleToTurn * TURN_ADJUSTMENT_PERCENT);
+                RobotLog.dd(TAG, "Adjusting angle to turn by a factor of " + TURN_ADJUSTMENT_PERCENT + " for an angle to turn of " + angleToTurn);
+            }
+            double turnVelocity = 1.5;
+            container.goTo(0, 0, angleToTurn, turnVelocity, true);
+        }
+
+        // Adjust to find the angle after we turn.
+        angleFromRobotCenterToAprilTag = angleFromRobotCenterToAprilTag - detectionData.ftcDetectionData.ftcPose.yaw;
+
         double distanceToMove;
         if (Math.abs(angleFromRobotCenterToAprilTag) >= 3.0) {
             // Strafe to place the center of the robot opposite the AprilTag.
@@ -157,8 +172,13 @@ public class BackdropAprilTag {
                 //**TODO Here's where you actually strafe your robot into position: the variable
                 // strafeDirection is either 90.0 for a strafe to the left or -90.0 for a strafe
                 // to the right.
-                int targetClicks = (int) (distanceToStrafe * 50);
-                container.goTo(0, Math.copySign(targetClicks, -strafeDirection), 0, strafeVelocity, true);
+                double clicksPerInch = 50;
+                int targetClicks = (int) (distanceToStrafe * clicksPerInch);
+                // Since our goTo method uses rectangular coordinates and not polar, we can simply add a final offset
+                // to account for the scoring system being off to the side.  This will probably be harder with a polar coordinate
+                // movement method like 4348's.
+                double scoringDistanceOffsetClicks = OFFSET_SCORING_MECHANISM_FROM_ROBOT_CENTER * clicksPerInch;
+                container.goTo(0, Math.copySign(targetClicks, -strafeDirection) + scoringDistanceOffsetClicks, 0, strafeVelocity, true);
                 // container.goToVector(strafeDirection, targetClicks, strafeVelocity, true);
                 // driveTrainMotion.straight(targetClicks, strafeDirection, strafeVelocity, 0, desiredHeading);
             }
@@ -349,7 +369,8 @@ public class BackdropAprilTag {
     private double shortDistanceVelocity(double pDistance) {
         // TODO: adjust? -lhack
         // return Math.abs(pDistance) < 2.0 ? 0.5 : 0.3; original phil's code
-        return Math.abs(pDistance) < 2.0? 1.5 : 1;
+        // return Math.abs(pDistance) < 2.0? 1.5 : 1;
+        return 1.5;
     }
 
 }

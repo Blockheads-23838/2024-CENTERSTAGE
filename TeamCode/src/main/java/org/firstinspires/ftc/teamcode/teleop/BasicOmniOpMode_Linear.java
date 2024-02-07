@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.TouchSensor;
@@ -28,7 +29,8 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
     private DcMotor rightBackDrive = null;
     private DcMotor intake = null;
     private DcMotorEx lift = null;
-    private DcMotorEx climber = null;
+    private DcMotorEx climberDownstairs = null;
+    private DcMotorEx climberUpstairs = null;
     private IMU imu = null;
     private Servo servo = null;
     private Servo crossbow = null;
@@ -50,13 +52,15 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
 
         lift = hardwareMap.get(DcMotorEx.class, "lift");
         intake = hardwareMap.get(DcMotor.class, "intake");
-        climber = hardwareMap.get(DcMotorEx.class, "climber");
+        climberDownstairs = hardwareMap.get(DcMotorEx.class, "climber_downstairs");
+        climberUpstairs = hardwareMap.get(DcMotorEx.class, "climber_upstairs");
 
         servo = hardwareMap.get(Servo.class, "servo");
         crossbow = hardwareMap.get(Servo.class, "crossbow");
 
         liftLimit = hardwareMap.get(TouchSensor.class, "lift_limit");
 
+        climberDownstairs.setDirection(DcMotorSimple.Direction.REVERSE);
         leftFrontDrive.setDirection(Constants.motorDirections.get("left_front"));
         leftBackDrive.setDirection(Constants.motorDirections.get("left_back"));
         rightFrontDrive.setDirection(Constants.motorDirections.get("right_front"));
@@ -82,10 +86,12 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
         }
 
         runtime.reset();
-        climber.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        climber.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        climberUpstairs.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        climberUpstairs.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        climberDownstairs.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        climberDownstairs.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         servo.setPosition(0);
-
+        crossbow.setPosition(0);
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
             // arm servo debug code
@@ -97,9 +103,9 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
             double crossbowSetpoint;
             if (gamepad2.left_stick_button && gamepad2.right_stick_button) {
                 telemetry.addLine("crossbowing!!");
-                crossbowSetpoint = 0.0;
+                crossbowSetpoint = Constants.crossbowFirePosition;
             } else {
-                crossbowSetpoint = 0.2;
+                crossbowSetpoint = Constants.crossbowRestPosition;
             }
             telemetry.addData("crossbow setpoint", crossbowSetpoint);
             if (crossbowSetpoint != crossbow.getPosition()) crossbow.setPosition(crossbowSetpoint);
@@ -144,16 +150,24 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
         } else if (gamepad2.right_trigger > 0.5 /* ||
                 (lift.getCurrentPosition() < Constants.ClearIntakeLiftPosition && -gamepad2.right_stick_y > 0) */){
             // put pan down if we're intaking or clearing the intake
-            // TODO: find more shallow angle?
             servoSetpoint = Constants.IntakingServoPosition;
         } else {
             // stow/carry position
             servoSetpoint = 0.09;
         }
 
-        // Climber
-        if (gamepad2.dpad_up) climber.setVelocity(4000 + climber.getCurrentPosition());
-        else climber.setVelocity(-climber.getCurrentPosition());
+        // Climber stuff
+        if (climberDownstairs.getCurrentPosition() < Constants.climberDownstairsGoToZeroPosition
+            && gamepad2.left_stick_y <= 0) {
+            // Add a zone where it P controls to horizontal
+            climberDownstairs.setVelocity(-climberDownstairs.getCurrentPosition() * 3);
+        } else {
+            climberDownstairs.setVelocity(600 * gamepad2.left_stick_y + 1);
+        }
+
+        if (gamepad2.dpad_up) climberUpstairs.setVelocity(1200);
+        else if (gamepad2.dpad_down) climberUpstairs.setVelocity(-1200);
+        else climberUpstairs.setVelocity(0);
 
         // sleep(20);
         telemetry.addData("servoSetpoint: ", servoSetpoint);

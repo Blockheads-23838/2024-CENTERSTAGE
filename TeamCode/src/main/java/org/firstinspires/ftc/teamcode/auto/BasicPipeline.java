@@ -36,6 +36,8 @@ public class BasicPipeline extends OpenCvPipeline {
         // on middle spike mark x = 300. don't think it'll be more than 350
         // on right spike value is 800
         // right between middle and right is 636. possible boundary.
+        // TODO: crop the image
+        // TODO: log images for debugging
 
 
         // crop out parts we're not concerned about

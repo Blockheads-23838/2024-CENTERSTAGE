@@ -23,6 +23,14 @@ public class Constants {
     public static final int ClearIntakeLiftPosition = 800;
     public static final int IntakingLiftPosition = 120;
     public static final int groundLiftPosition = 0;
+    public static double crossbowRestPosition = 1;
+    public static double crossbowFirePosition = 0.8;
+    public static double autoHookStowPosition = 0.8; // 0.8 is good
+    public static double autoHookPurpleDropPosition = 0.58; // 0.58 is good
+    public static double autoHookYellowDropPosition = 0; //0 is ok
+
+    public static double climberDownstairsGoToZeroPosition = 120;
+
 
     public static double IntakingServoPosition = 0.05; // 0.05 works great in solo (only leo) testing
 }

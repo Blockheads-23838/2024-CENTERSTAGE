@@ -1,7 +1,6 @@
 package org.firstinspires.ftc.teamcode.auto;
 
 import com.acmerobotics.dashboard.config.Config;
-import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -9,28 +8,27 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.teamcode.common.Constants;
-import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
-import org.firstinspires.ftc.teamcode.trajectorysequence.TrajectorySequence;
 import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
 
+import java.util.ArrayList;
+
 @Config
-@com.qualcomm.robotcore.eventloop.opmode.Autonomous (name = "2+0 Blue auto")
+@com.qualcomm.robotcore.eventloop.opmode.Autonomous (name = "2+0 Blue")
 public class TwoPlusZeroBlueAuto extends LinearOpMode {
 
     private DcMotorEx lift;
-    private Servo servo;
     private DcMotor intake = null;
+    DcMotorEx leftFrontDrive;
+    DcMotorEx leftBackDrive;
+    DcMotorEx rightFrontDrive;
+    DcMotorEx rightBackDrive;
+    private Servo servo;
+    private Servo autoHook;
+    ArrayList<DcMotorEx> driveMotors = new ArrayList<>();
     OpenCvCamera camera;
-    BasicPipeline pipeline = new BasicPipeline();
-
-    public static Pose2d toPropPose = new Pose2d(9, 36 - 6, Math.toRadians(180));
-    public static double toPropPoseAngle = 225;
-    public static Pose2d pixelDropPose = new Pose2d(12, 36 - 6, Math.toRadians(180));
-    public static double pixelDropPoseAngle = 180;
-    // private VisionPortal visionPortal;               // Used to manage the video source.
-    // private AprilTagProcessor aprilTag;              // Used for managing the AprilTag detection process.
+    PipelineRed pipeline = new PipelineRed();
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -54,14 +52,15 @@ public class TwoPlusZeroBlueAuto extends LinearOpMode {
         // Scoring activation
         lift = hardwareMap.get(DcMotorEx.class, "lift");
         intake = hardwareMap.get(DcMotor.class, "intake");
-        servo = hardwareMap.get(Servo.class, "servo");
 
         lift.setDirection(Constants.motorDirections.get("lift"));
 
         lift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         lift.setVelocity(1);
-        servo.setPosition(0.1);
+
+        servo = hardwareMap.get(Servo.class, "servo");
+        autoHook = hardwareMap.get(Servo.class, "auto_hook");
 
         while (!isStarted() && !isStopRequested()) {
             telemetry.addData("Prop x value: ", pipeline.getJunctionPoint().x);
@@ -69,104 +68,109 @@ public class TwoPlusZeroBlueAuto extends LinearOpMode {
             telemetry.addLine("Place the purple pixel between the second and third compliant wheels from the left.");
             telemetry.addLine("It should be roughly centered.  It should be as close to touching the ground as possible WITHOUT touching the ground.");
             telemetry.addLine("Ensure the intake is at the bottom of its backlash-induced free-spinning zone so the pixel doesn't scrape the ground.");
+            telemetry.addLine("The pan should be FULLY ON THE GROUND when the program starts.");
+            if (autoHook.getPosition() != Constants.autoHookStowPosition) {
+                autoHook.setPosition(Constants.autoHookStowPosition);
+            }
             telemetry.update();
         }
+        servo.setPosition(0.09);
 
         lift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         lift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         lift.setVelocity(1);
 
         // Drivetrain activation
-        SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap);
-        Pose2d startingPose = new Pose2d(15 - 54, 60+3, Math.toRadians(270));
-        drive.setPoseEstimate(startingPose);
+        leftFrontDrive = hardwareMap.get(DcMotorEx.class, "left_front");
+        leftBackDrive = hardwareMap.get(DcMotorEx.class, "left_back");
+        rightFrontDrive = hardwareMap.get(DcMotorEx.class, "right_front");
+        rightBackDrive = hardwareMap.get(DcMotorEx.class, "right_back");
 
+        leftFrontDrive.setDirection(Constants.motorDirections.get("left_front"));
+        leftBackDrive.setDirection(Constants.motorDirections.get("left_back"));
+        rightFrontDrive.setDirection(Constants.motorDirections.get("right_front"));
+        rightBackDrive.setDirection(Constants.motorDirections.get("right_back"));
 
-        TrajectorySequence rightTrajectory = drive.trajectorySequenceBuilder(startingPose)
-                .splineToSplineHeading(new Pose2d(-33, 33, Math.toRadians(180)), Math.toRadians(0))
-                .UNSTABLE_addTemporalMarkerOffset(0, () -> {
-                })
-                .UNSTABLE_addTemporalMarkerOffset(1, () -> {
-                })
-                .waitSeconds(1)
-                .setTangent(Math.toRadians(90))
-                .splineToLinearHeading(new Pose2d(-36, 60, Math.toRadians(180)), Math.toRadians(90))
-                .setTangent(0)
-                .splineToLinearHeading(new Pose2d(45, 36, Math.toRadians(180)), Math.toRadians(-50))
-                .build();
-
-        TrajectorySequence middleTrajectory = drive.trajectorySequenceBuilder(startingPose)
-                .splineToLinearHeading(new Pose2d(17 - 54, 30, Math.toRadians(270)), Math.toRadians(0))
-                .splineToLinearHeading(new Pose2d(20 - 54, 39, Math.toRadians(270)), Math.toRadians(90))
-                .UNSTABLE_addTemporalMarkerOffset(0, () -> {
-                    intake.setPower(-1);
-                })
-                .UNSTABLE_addTemporalMarkerOffset(1, () -> {
-                    intake.setPower(0);
-                })
-                .waitSeconds(1)
-                .setTangent(Math.toRadians(135))
-                .splineToLinearHeading(new Pose2d(-48, 60, Math.toRadians(180)), Math.toRadians(90))
-                .setTangent(0)
-                .splineToLinearHeading(new Pose2d(45, 36, Math.toRadians(180)), Math.toRadians(-50))
-                .build();
-
-        TrajectorySequence leftTrajectory = drive.trajectorySequenceBuilder(startingPose)
-                .splineToLinearHeading(new Pose2d(17 - 54, 60, Math.toRadians(0)), Math.toRadians(300)) // used to be 225
-                .UNSTABLE_addTemporalMarkerOffset(0, () -> {
-                    intake.setPower(-1);
-                })
-                .UNSTABLE_addTemporalMarkerOffset(1, () -> {
-                    intake.setPower(0);
-                })
-                .waitSeconds(1)
-                .setTangent(135)
-                .splineToLinearHeading(new Pose2d(-45, 60, Math.toRadians(180)), Math.toRadians(90))
-                .setTangent(0)
-                .splineToLinearHeading(new Pose2d(45, 45, Math.toRadians(180)), Math.toRadians(-45))
-                .build();
-
+        driveMotors.add(leftFrontDrive);
+        driveMotors.add(leftBackDrive);
+        driveMotors.add(rightFrontDrive);
+        driveMotors.add(rightBackDrive);
 
         double propX = pipeline.getJunctionPoint().x;
         double propArea = pipeline.getPropAreaAttr();
 
+        double autoPower = 500;
+
+        goTo(1175, 0, 0, autoPower, true);
+
         if (propArea < 15000) { // None detected, we assume left spike mark
-            drive.followTrajectorySequence(leftTrajectory);
-
-            sleep(400);
-            lift.setTargetPosition(2000);
-            lift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            lift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            lift.setVelocity(500);
-            while (lift.isBusy()) telemetry.addData("lift position: ", lift.getCurrentPosition());
-
-            drive.followTrajectorySequence(drive.trajectorySequenceBuilder(leftTrajectory.end()).back(6).forward(12).build());
+            goTo(100, 0, 0, autoPower, true);
+            goTo(0, 0, -90, autoPower, true);
+            autoHook.setPosition(Constants.autoHookPurpleDropPosition);
+            goTo(-200, -400, 0, autoPower, true);
         } else if (propX > 600) { // right spike mark
-            drive.followTrajectorySequence(rightTrajectory);
-
-            sleep(400);
-            lift.setTargetPosition(2000);
-            lift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            lift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            lift.setVelocity(1000);
-            while (lift.isBusy()) telemetry.addData("lift position: ", lift.getCurrentPosition());
+            goTo(-200, 0, 0, autoPower, true);
+            goTo(0, -100, 90, autoPower, true);
+            autoHook.setPosition(Constants.autoHookPurpleDropPosition);
+            goTo(-200, -400, -180, autoPower, true);
         } else { // middle spike mark
-            drive.followTrajectorySequence(middleTrajectory);
-
-            sleep(400);
-            lift.setTargetPosition(2000);
-            lift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            lift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            lift.setVelocity(1000);
-            while (lift.isBusy()) telemetry.addData("lift position: ", lift.getCurrentPosition());
-
+            goTo(0, 300, 0, autoPower, true);
+            autoHook.setPosition(Constants.autoHookPurpleDropPosition);
+            goTo(-400, 0, -90, autoPower, true);
         }
-        // wiggle the pixel off
-        for (int i = 0; i < 20; i++) {
-            servo.setPosition(0.22);
-            sleep(100);
-            servo.setPosition(0.2);
-            sleep(100);
+        autoHook.setPosition(Constants.autoHookYellowDropPosition);
+
+    }
+    public void goTo(double forward, double strafe, double yaw, double powercoef, boolean waitToFinish) {
+        /**
+         * Moves robot-centrically.  All is in ticks except yaw, which is approximately degrees such that 90 turns the robot very approximately 90 degrees clockwise.
+         */
+        yaw *= 11;
+        double leftFrontPower = powercoef * (forward + strafe + yaw);
+        double rightFrontPower = powercoef * (forward - strafe - yaw);
+        double leftBackPower = powercoef * (forward - strafe + yaw);
+        double rightBackPower = powercoef * (forward + strafe - yaw);
+
+        // Normalize the values so no wheel power exceeds 100%
+        // This ensures that the robot maintains the desired motion.
+        double max = Math.max(Math.abs(leftFrontPower), Math.abs(rightFrontPower));
+        max = Math.max(max, Math.abs(leftBackPower));
+        max = Math.max(max, Math.abs(rightBackPower));
+
+        if (max > 2000) {
+            leftFrontPower /= max;
+            rightFrontPower /= max;
+            leftBackPower /= max;
+            rightBackPower /= max;
+            leftFrontPower *= powercoef;
+            leftBackPower *= powercoef;
+            rightFrontPower *= powercoef;
+            rightBackPower *= powercoef;
+        }
+
+        for (DcMotorEx motor : driveMotors) {
+            motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        }
+        leftFrontDrive.setTargetPosition((int) (forward + strafe + yaw));
+        leftBackDrive.setTargetPosition((int) (forward - strafe + yaw));
+        rightFrontDrive.setTargetPosition((int) (forward - strafe - yaw));
+        rightBackDrive.setTargetPosition((int) (forward + strafe - yaw));
+
+        for (DcMotorEx motor : driveMotors) {
+            motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        }
+
+        leftFrontDrive.setVelocity(leftFrontPower);
+        leftBackDrive.setVelocity(leftBackPower);
+        rightFrontDrive.setVelocity(rightFrontPower);
+        rightBackDrive.setVelocity(rightBackPower);
+
+        if (waitToFinish) while (leftFrontDrive.isBusy()) {
+            telemetry.addData("lf power: ", leftFrontPower);
+            telemetry.addData("lf tgt position: ", leftFrontDrive.getTargetPosition());
+            telemetry.addData("lf position: ", leftFrontDrive.getCurrentPosition());
+            telemetry.update();
         }
     }
 }

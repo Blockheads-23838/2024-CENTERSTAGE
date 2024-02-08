@@ -22,6 +22,7 @@ public class TwoPlusZeroRedAuto extends LinearOpMode {
 
     private DcMotorEx lift;
     private DcMotor intake = null;
+    DcMotorEx climberDownstairs;
     DcMotorEx leftFrontDrive;
     DcMotorEx leftBackDrive;
     DcMotorEx rightFrontDrive;
@@ -56,12 +57,14 @@ public class TwoPlusZeroRedAuto extends LinearOpMode {
         intake = hardwareMap.get(DcMotor.class, "intake");
 
         lift.setDirection(Constants.motorDirections.get("lift"));
-
         lift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-        lift.setVelocity(1);
-
         servo = hardwareMap.get(Servo.class, "servo");
+
+        // Endgame + auto activation
+        climberDownstairs = hardwareMap.get(DcMotorEx.class, "climber_downstairs");
+        climberDownstairs.setDirection(Constants.motorDirections.get("climber_downstairs"));
+
         autoHook = hardwareMap.get(Servo.class, "auto_hook");
         autoHook.setPosition(Constants.autoHookStowPosition);
 
@@ -114,36 +117,53 @@ public class TwoPlusZeroRedAuto extends LinearOpMode {
         AprilTagUtils.AprilTagId aprilTagEnum = AprilTagUtils.AprilTagId.getEnumValue(tagIdInt);
         BackdropAprilTag backdropAprilTag = new BackdropAprilTag(this);
 
-        /*
+        // Power up mechanisms that need powering up
         servo.setPosition(0.09);
 
         lift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         lift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        lift.setVelocity(1);
-        double autoPower = 500;
+        lift.setTargetPosition(800);
+        lift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        lift.setVelocity(1000);
+
+        climberDownstairs.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        climberDownstairs.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        climberDownstairs.setTargetPosition(600);
+        climberDownstairs.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        climberDownstairs.setVelocity(600);
+        double autoPower = 800;
 
         goTo(1175, 0, 0, autoPower, true);
 
+        // Go to spike marks, drop a purple, then get the Apriltags into the camera's field of view.
         if (propArea < 15000) { // None detected, we assume left spike mark
             goTo(100, 0, 0, autoPower, true);
             goTo(0, 0, -90, autoPower, true);
-            autoHook.setPosition(Constants.autoHookPurpleDropPosition);
-            goTo(-200, 400, 180, autoPower, true);
+            sleep(500);
+            intake.setPower(-1);
+            sleep(1000);
+            intake.setPower(0);
+            goTo(-800, 0, -210, autoPower, true);
         } else if (propX > 600) { // right spike mark
             goTo(0, 0, 90, autoPower, true);
-            autoHook.setPosition(Constants.autoHookPurpleDropPosition);
-            goTo(0, 400, 0, autoPower, true);
+            sleep(500);
+            intake.setPower(-1);
+            sleep(1000);
+            intake.setPower(0);
+            goTo(-400, -1200, 0, autoPower, true);
         } else { // middle spike mark
             goTo(0, 200, 0, autoPower, true);
-            autoHook.setPosition(Constants.autoHookPurpleDropPosition);
-            goTo(-400, 0, 90, autoPower, true);
+            sleep(500);
+            intake.setPower(-1);
+            sleep(1000);
+            intake.setPower(0);
+            goTo(-400, 200, 90, autoPower, true);
         }
-         */
-        for (int i = 0; i < 4000; i++) {
-            sleep(1);
-        }
+
+        for (int i = 0; i < 1000; i++) sleep(1);
         container.init(this);
-        backdropAprilTag.driveToBackdropAprilTag(aprilTagEnum, 0, BackdropAprilTag.Direction.FORWARD, container);
+        backdropAprilTag.driveToBackdropAprilTag(aprilTagEnum, 1.25, BackdropAprilTag.Direction.FORWARD, container);
+        sleep(1000);
         autoHook.setPosition(Constants.autoHookYellowDropPosition);
         sleep(3000);
 

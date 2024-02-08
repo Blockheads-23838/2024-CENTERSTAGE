@@ -60,7 +60,7 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
 
         liftLimit = hardwareMap.get(TouchSensor.class, "lift_limit");
 
-        climberDownstairs.setDirection(DcMotorSimple.Direction.REVERSE);
+        climberDownstairs.setDirection(Constants.motorDirections.get("climber_downstairs"));
         leftFrontDrive.setDirection(Constants.motorDirections.get("left_front"));
         leftBackDrive.setDirection(Constants.motorDirections.get("left_back"));
         rightFrontDrive.setDirection(Constants.motorDirections.get("right_front"));
@@ -88,8 +88,6 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
         runtime.reset();
         climberUpstairs.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         climberUpstairs.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        climberDownstairs.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        climberDownstairs.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         servo.setPosition(0);
         crossbow.setPosition(0);
         // run until the end of the match (driver presses STOP)
@@ -155,6 +153,10 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
             // stow/carry position
             servoSetpoint = 0.09;
         }
+        // sleep(20);
+        telemetry.addData("servoSetpoint: ", servoSetpoint);
+        telemetry.addData("Last servo setpoint: ", servo.getPosition());
+        if (servo.getPosition() != servoSetpoint) servo.setPosition(servoSetpoint);
 
         // Climber stuff
         if (climberDownstairs.getCurrentPosition() < Constants.climberDownstairsGoToZeroPosition
@@ -165,14 +167,11 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
             climberDownstairs.setVelocity(600 * gamepad2.left_stick_y + 1);
         }
 
-        if (gamepad2.dpad_up) climberUpstairs.setVelocity(1200);
-        else if (gamepad2.dpad_down) climberUpstairs.setVelocity(-1200);
+        if (gamepad2.dpad_up) climberUpstairs.setVelocity(2400);
+        else if (gamepad2.dpad_down) climberUpstairs.setVelocity(-2400);
         else climberUpstairs.setVelocity(0);
+        telemetry.addData("climber downstairs position: ", climberDownstairs.getCurrentPosition());
 
-        // sleep(20);
-        telemetry.addData("servoSetpoint: ", servoSetpoint);
-        telemetry.addData("Last servo setpoint: ", servo.getPosition());
-        if (servo.getPosition() != servoSetpoint) servo.setPosition(servoSetpoint);
     }
 
     public void HandleDrivetrain() {

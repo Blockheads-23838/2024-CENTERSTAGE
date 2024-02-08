@@ -18,16 +18,18 @@ public class Constants {
         put("left_back", Direction.REVERSE);
         put("right_back", Direction.FORWARD);
         put("lift", Direction.REVERSE);
+        put("climber_downstairs", Direction.REVERSE);
     }};
     public static final int TopLiftPosition = 3060;
     public static final int ClearIntakeLiftPosition = 800;
     public static final int IntakingLiftPosition = 120;
     public static final int groundLiftPosition = 0;
-    public static double crossbowRestPosition = 1;
-    public static double crossbowFirePosition = 0.8;
-    public static double autoHookStowPosition = 0.8; // 0.8 is good
-    public static double autoHookPurpleDropPosition = 0.58; // 0.58 is good
-    public static double autoHookYellowDropPosition = 0; //0 is ok
+    // If the servo horn is facing straight outwards in the same direction as the cable when the servo is at zero position
+    public static double crossbowRestPosition = 0.4;
+    public static double crossbowFirePosition = 1;
+    public static double autoHookStowPosition = 0.8;
+    public static double autoHookPurpleDropPosition = 0.58;
+    public static double autoHookYellowDropPosition = 0.1;
 
     public static double climberDownstairsGoToZeroPosition = 120;
 

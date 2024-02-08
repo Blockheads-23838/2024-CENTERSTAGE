@@ -39,10 +39,10 @@ public class BackdropAprilTag {
     // As seen from behind.
     private static final double DISTANCE_CAMERA_LENS_TO_ROBOT_CENTER = 9.5; // LCHS 23838
     private static final double OFFSET_CAMERA_LENS_FROM_ROBOT_CENTER = -6.125; // LCHS 23838
-    private static final double OFFSET_SCORING_MECHANISM_FROM_ROBOT_CENTER = 0;
+    private static final double OFFSET_SCORING_MECHANISM_FROM_ROBOT_CENTER = 5;
 
     //**TODO Tune the next four values later - after the basic movement is working ...
-    private static final double TURN_ADJUSTMENT_PERCENT = 0.20;
+    private static final double TURN_ADJUSTMENT_PERCENT = 0.35;
     private static final double STRAFE_ADJUSTMENT_PERCENT = 0.20; // LCHS 23838
     // lhack- this is how much more left or right we have to go than the left or right apriltags to score.  has to be adjusted on an actual backboard.
     private static final double OUTSIDE_STRAFE_ADJUSTMENT = 0.0; // LCHS 23838.
@@ -120,7 +120,7 @@ public class BackdropAprilTag {
                 angleToTurn += (angleToTurn * TURN_ADJUSTMENT_PERCENT);
                 RobotLog.dd(TAG, "Adjusting angle to turn by a factor of " + TURN_ADJUSTMENT_PERCENT + " for an angle to turn of " + angleToTurn);
             }
-            double turnVelocity = 1.5;
+            double turnVelocity = 500;
             container.goTo(0, 0, angleToTurn, turnVelocity, true);
         }
 

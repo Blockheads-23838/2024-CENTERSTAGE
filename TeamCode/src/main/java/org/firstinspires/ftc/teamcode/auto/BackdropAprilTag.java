@@ -39,7 +39,7 @@ public class BackdropAprilTag {
     // As seen from behind.
     private static final double DISTANCE_CAMERA_LENS_TO_ROBOT_CENTER = 9.5; // LCHS 23838
     private static final double OFFSET_CAMERA_LENS_FROM_ROBOT_CENTER = -6.125; // LCHS 23838
-    private static final double OFFSET_SCORING_MECHANISM_FROM_ROBOT_CENTER = 5;
+    private static final double OFFSET_SCORING_MECHANISM_FROM_ROBOT_CENTER = 3.75;
 
     //**TODO Tune the next four values later - after the basic movement is working ...
     private static final double TURN_ADJUSTMENT_PERCENT = 0.35;

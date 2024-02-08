@@ -109,9 +109,9 @@ public class TwoPlusZeroRedAuto extends LinearOpMode {
         if (propArea < 15000) { // None detected, we assume left spike mark
             tagIdInt = 4;
         } else if (propX > 600) { // right spike mark
-            tagIdInt = 5;
-        } else { // middle spike mark
             tagIdInt = 6;
+        } else { // middle spike mark
+            tagIdInt = 5;
         }
 
         AprilTagUtils.AprilTagId aprilTagEnum = AprilTagUtils.AprilTagId.getEnumValue(tagIdInt);
@@ -150,7 +150,7 @@ public class TwoPlusZeroRedAuto extends LinearOpMode {
             intake.setPower(-1);
             sleep(1000);
             intake.setPower(0);
-            goTo(-400, -1200, 0, autoPower, true);
+            goTo(0, 1000, -10, autoPower, true);
         } else { // middle spike mark
             goTo(0, 200, 0, autoPower, true);
             sleep(500);

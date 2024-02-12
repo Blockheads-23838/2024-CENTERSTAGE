@@ -27,9 +27,11 @@ public class Constants {
     // If the servo horn is facing straight outwards in the same direction as the cable when the servo is at zero position
     public static double crossbowRestPosition = 0.4;
     public static double crossbowFirePosition = 1;
-    public static double autoHookStowPosition = 0.8;
-    public static double autoHookPurpleDropPosition = 0.58;
-    public static double autoHookYellowDropPosition = 0.1;
+    public static double autoHookStowPosition = 0.7;
+    public static double autoHookCarryPosition = 0.5;
+    public static double autoHookYellowDropPosition = 0.05;
+    public static double purpleHookDragPosition = 0;
+    public static double purpleHookStowPosition = 0.8;
 
     public static double climberDownstairsGoToZeroPosition = 120;
 

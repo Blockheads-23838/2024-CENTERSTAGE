@@ -29,6 +29,7 @@ public class TwoPlusZeroRedAuto extends LinearOpMode {
     DcMotorEx rightBackDrive;
     private Servo servo;
     private Servo autoHook;
+    private Servo purpleHook;
     ArrayList<DcMotorEx> driveMotors = new ArrayList<>();
     OpenCvCamera camera;
     PipelineRed pipeline = new PipelineRed();
@@ -67,6 +68,8 @@ public class TwoPlusZeroRedAuto extends LinearOpMode {
 
         autoHook = hardwareMap.get(Servo.class, "auto_hook");
         autoHook.setPosition(Constants.autoHookStowPosition);
+        purpleHook = hardwareMap.get(Servo.class, "purple hook");
+        purpleHook.setPosition(Constants.purpleHookDragPosition);
 
         RobotContainer container = new RobotContainer();
 
@@ -95,6 +98,7 @@ public class TwoPlusZeroRedAuto extends LinearOpMode {
             telemetry.addLine("The pan should be FULLY ON THE GROUND when the program starts.");
             telemetry.addData("Prop x value: ", pipeline.getJunctionPoint().x);
             telemetry.addData("Prop area: ", pipeline.getPropAreaAttr());
+            if (purpleHook.getPosition() != Constants.purpleHookDragPosition) purpleHook.setPosition(Constants.purpleHookDragPosition);
             if (autoHook.getPosition() != Constants.autoHookStowPosition) {
                 autoHook.setPosition(Constants.autoHookStowPosition);
             }
@@ -106,7 +110,7 @@ public class TwoPlusZeroRedAuto extends LinearOpMode {
         double propArea = pipeline.getPropAreaAttr();
 
         int tagIdInt = -1;
-        if (propArea < 15000) { // None detected, we assume left spike mark
+        if (propArea < 8000) { // None detected, we assume left spike mark
             tagIdInt = 4;
         } else if (propX > 600) { // right spike mark
             tagIdInt = 6;
@@ -119,10 +123,11 @@ public class TwoPlusZeroRedAuto extends LinearOpMode {
 
         // Power up mechanisms that need powering up
         servo.setPosition(0.09);
+        autoHook.setPosition(Constants.autoHookCarryPosition);
 
         lift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         lift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        lift.setTargetPosition(800);
+        lift.setTargetPosition(200);
         lift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         lift.setVelocity(1000);
 
@@ -131,41 +136,62 @@ public class TwoPlusZeroRedAuto extends LinearOpMode {
         climberDownstairs.setTargetPosition(600);
         climberDownstairs.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         climberDownstairs.setVelocity(600);
-        double autoPower = 800;
+        double autoPower = 1500;
 
         goTo(1175, 0, 0, autoPower, true);
 
         // Go to spike marks, drop a purple, then get the Apriltags into the camera's field of view.
-        if (propArea < 15000) { // None detected, we assume left spike mark
+        if (propArea < 8000) { // None detected, we assume left spike mark
             goTo(100, 0, 0, autoPower, true);
             goTo(0, 0, -90, autoPower, true);
+            purpleHook.setPosition(Constants.purpleHookStowPosition);
             sleep(500);
-            intake.setPower(-1);
-            sleep(1000);
-            intake.setPower(0);
             goTo(-800, 0, -210, autoPower, true);
         } else if (propX > 600) { // right spike mark
             goTo(0, 0, 90, autoPower, true);
+            purpleHook.setPosition(Constants.purpleHookStowPosition);
             sleep(500);
-            intake.setPower(-1);
-            sleep(1000);
-            intake.setPower(0);
             goTo(0, 1000, -10, autoPower, true);
         } else { // middle spike mark
-            goTo(0, 200, 0, autoPower, true);
+            goTo(350, 200, 0, autoPower, true);
+            purpleHook.setPosition(Constants.purpleHookStowPosition);
             sleep(500);
-            intake.setPower(-1);
-            sleep(1000);
-            intake.setPower(0);
-            goTo(-400, 200, 90, autoPower, true);
+            goTo(0, 600, 0, autoPower, true);
+            goTo(0, 200, 90, autoPower, true);
         }
 
+        // Wait to recognize the apriltag
         for (int i = 0; i < 1000; i++) sleep(1);
+        // Drive to backdrop via apriltag.
         container.init(this);
-        backdropAprilTag.driveToBackdropAprilTag(aprilTagEnum, 1.25, BackdropAprilTag.Direction.FORWARD, container);
-        sleep(1000);
+        boolean successfulBackdropDrive = backdropAprilTag.driveToBackdropAprilTag(aprilTagEnum, 0, BackdropAprilTag.Direction.FORWARD, container);
+
+        // Failsafe in case apriltag navigation fails
+        if (!successfulBackdropDrive) {
+            if (propArea < 8000) { // None detected, we assume left spike mark
+                goTo(-1800, 0, 0, autoPower, true);
+                goTo(0, 0, -200, autoPower, true);
+                goTo(200, 0, 0, autoPower, true);
+            } else if (propX > 600) { // right spike mark
+                goTo(0, 1000, 0, autoPower, true);
+                goTo(1800, 0, 0, autoPower, true);
+                goTo(0, -1000, 0, autoPower, true);
+                goTo(200, 0, 0, autoPower, true);
+            } else { // middle spike mark
+                goTo(-400, 0, 100, autoPower, true);
+                goTo(1800, 0, 0, autoPower, true);
+                goTo(200, 0, 0, autoPower, true);
+            }
+        }
+
+        // Score
+        goTo(50, 0, 0, autoPower, true);
+        sleep(300);
         autoHook.setPosition(Constants.autoHookYellowDropPosition);
-        sleep(3000);
+        sleep(1000);
+        goTo(-200, 0, 0, autoPower, true);
+        autoHook.setPosition(Constants.autoHookStowPosition);
+        goTo(-500, 1500, 0, 10000, true);
 
     }
     public void goTo(double forward, double strafe, double yaw, double powercoef, boolean waitToFinish) {

@@ -1,13 +1,16 @@
 package org.firstinspires.ftc.teamcode.auto;
 
 import com.acmerobotics.dashboard.config.Config;
+import com.fasterxml.jackson.databind.introspect.TypeResolutionContext;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.teamcode.auto.vision.AprilTagUtils;
 import org.firstinspires.ftc.teamcode.common.Constants;
+import org.firstinspires.ftc.teamcode.common.RobotContainer;
 import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
@@ -20,6 +23,7 @@ public class TwoPlusZeroBlueAuto extends LinearOpMode {
 
     private DcMotorEx lift;
     private DcMotor intake = null;
+    DcMotorEx climberDownstairs;
     DcMotorEx leftFrontDrive;
     DcMotorEx leftBackDrive;
     DcMotorEx rightFrontDrive;
@@ -28,57 +32,10 @@ public class TwoPlusZeroBlueAuto extends LinearOpMode {
     private Servo autoHook;
     ArrayList<DcMotorEx> driveMotors = new ArrayList<>();
     OpenCvCamera camera;
-    PipelineRed pipeline = new PipelineRed();
+    BasicPipeline pipeline = new BasicPipeline();
 
     @Override
     public void runOpMode() throws InterruptedException {
-        // Camera activation
-        int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
-        camera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "camera"), cameraMonitorViewId);
-
-        camera.setPipeline(pipeline);
-        camera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
-            @Override
-            public void onOpened() {
-                camera.startStreaming(1280, 720, OpenCvCameraRotation.UPRIGHT);
-            }
-
-            @Override
-            public void onError(int errorCode) {
-
-            }
-        });
-
-        // Scoring activation
-        lift = hardwareMap.get(DcMotorEx.class, "lift");
-        intake = hardwareMap.get(DcMotor.class, "intake");
-
-        lift.setDirection(Constants.motorDirections.get("lift"));
-
-        lift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-
-        lift.setVelocity(1);
-
-        servo = hardwareMap.get(Servo.class, "servo");
-        autoHook = hardwareMap.get(Servo.class, "auto_hook");
-
-        while (!isStarted() && !isStopRequested()) {
-            telemetry.addData("Prop x value: ", pipeline.getJunctionPoint().x);
-            telemetry.addData("Prop area: ", pipeline.getPropAreaAttr());
-            telemetry.addLine("Place the purple pixel between the second and third compliant wheels from the left.");
-            telemetry.addLine("It should be roughly centered.  It should be as close to touching the ground as possible WITHOUT touching the ground.");
-            telemetry.addLine("Ensure the intake is at the bottom of its backlash-induced free-spinning zone so the pixel doesn't scrape the ground.");
-            telemetry.addLine("The pan should be FULLY ON THE GROUND when the program starts.");
-            if (autoHook.getPosition() != Constants.autoHookStowPosition) {
-                autoHook.setPosition(Constants.autoHookStowPosition);
-            }
-            telemetry.update();
-        }
-        servo.setPosition(0.09);
-
-        lift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        lift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        lift.setVelocity(1);
 
         // Drivetrain activation
         leftFrontDrive = hardwareMap.get(DcMotorEx.class, "left_front");
@@ -96,29 +53,127 @@ public class TwoPlusZeroBlueAuto extends LinearOpMode {
         driveMotors.add(rightFrontDrive);
         driveMotors.add(rightBackDrive);
 
+        // Scoring activation
+        lift = hardwareMap.get(DcMotorEx.class, "lift");
+        intake = hardwareMap.get(DcMotor.class, "intake");
+
+        lift.setDirection(Constants.motorDirections.get("lift"));
+        lift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        servo = hardwareMap.get(Servo.class, "servo");
+
+        // Endgame + auto activation
+        climberDownstairs = hardwareMap.get(DcMotorEx.class, "climber_downstairs");
+        climberDownstairs.setDirection(Constants.motorDirections.get("climber_downstairs"));
+
+        autoHook = hardwareMap.get(Servo.class, "auto_hook");
+        autoHook.setPosition(Constants.autoHookStowPosition);
+
+        RobotContainer container = new RobotContainer();
+
+        // Camera activation
+        int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
+        camera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "camera"), cameraMonitorViewId);
+
+        camera.setPipeline(pipeline);
+        camera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
+            @Override
+            public void onOpened() {
+                camera.startStreaming(1280, 720, OpenCvCameraRotation.UPRIGHT);
+            }
+
+            @Override
+            public void onError(int errorCode) {
+
+            }
+        });
+
+
+        while (!isStarted() && !isStopRequested()) {
+            telemetry.addLine("Place the purple pixel between the second and third compliant wheels from the left.");
+            telemetry.addLine("It should be roughly centered.  It should be as close to touching the ground as possible WITHOUT touching the ground.");
+            telemetry.addLine("Ensure the intake is at the bottom of its backlash-induced free-spinning zone so the pixel doesn't scrape the ground.");
+            telemetry.addLine("The pan should be FULLY ON THE GROUND when the program starts.");
+            telemetry.addData("Prop x value: ", pipeline.getJunctionPoint().x);
+            telemetry.addData("Prop area: ", pipeline.getPropAreaAttr());
+            if (autoHook.getPosition() != Constants.autoHookStowPosition) {
+                autoHook.setPosition(Constants.autoHookStowPosition);
+            }
+            telemetry.update();
+        }
+
+        // Get apriltag ID from prop situation
         double propX = pipeline.getJunctionPoint().x;
         double propArea = pipeline.getPropAreaAttr();
 
-        double autoPower = 500;
+        int tagIdInt = -1;
+        if (propArea < 15000) { // None detected, we assume left spike mark
+            tagIdInt = 1;
+        } else if (propX > 600) { // right spike mark
+            tagIdInt = 3;
+        } else { // middle spike mark
+            tagIdInt = 2;
+        }
+
+        AprilTagUtils.AprilTagId aprilTagEnum = AprilTagUtils.AprilTagId.getEnumValue(tagIdInt);
+        BackdropAprilTag backdropAprilTag = new BackdropAprilTag(this);
+
+        // Power up mechanisms that need powering up
+        servo.setPosition(0.09);
+
+        lift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        lift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        lift.setTargetPosition(200);
+        lift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        lift.setVelocity(1000);
+
+        climberDownstairs.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        climberDownstairs.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        climberDownstairs.setTargetPosition(600);
+        climberDownstairs.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        climberDownstairs.setVelocity(600);
+
+        double autoPower = 1500;
 
         goTo(1175, 0, 0, autoPower, true);
 
         if (propArea < 15000) { // None detected, we assume left spike mark
             goTo(100, 0, 0, autoPower, true);
             goTo(0, 0, -90, autoPower, true);
-            autoHook.setPosition(Constants.autoHookPurpleDropPosition);
-            goTo(-200, -400, 0, autoPower, true);
+            sleep(500);
+            intake.setPower(-1);
+            sleep(1000);
+            intake.setPower(0);
+            sleep(500);
+            goTo(0, -1000, 0, autoPower, true);
+            goTo(800, 0, 0, autoPower, true);
         } else if (propX > 600) { // right spike mark
             goTo(-200, 0, 0, autoPower, true);
             goTo(0, -100, 90, autoPower, true);
-            autoHook.setPosition(Constants.autoHookPurpleDropPosition);
-            goTo(-200, -400, -180, autoPower, true);
+            sleep(500);
+            intake.setPower(-1);
+            sleep(1000);
+            intake.setPower(0);
+            sleep(500);
+            goTo(-800, 0, 210, autoPower, true);
         } else { // middle spike mark
             goTo(0, 300, 0, autoPower, true);
-            autoHook.setPosition(Constants.autoHookPurpleDropPosition);
-            goTo(-400, 0, -90, autoPower, true);
+            sleep(500);
+            intake.setPower(-1);
+            sleep(1000);
+            intake.setPower(0);
+            sleep(500);
+            goTo(-400, -200, -90, autoPower, true);
         }
+
+        for (int i = 0; i < 2000; i++) sleep(1);
+        container.init(this);
+        backdropAprilTag.driveToBackdropAprilTag(aprilTagEnum, 1.25, BackdropAprilTag.Direction.FORWARD, container);
+        sleep(1000);
         autoHook.setPosition(Constants.autoHookYellowDropPosition);
+        sleep(1000);
+        goTo(-500, -1500, 0, 10000, true);
+        autoHook.setPosition(Constants.autoHookStowPosition);
 
     }
     public void goTo(double forward, double strafe, double yaw, double powercoef, boolean waitToFinish) {

@@ -34,8 +34,10 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
     private IMU imu = null;
     private Servo servo = null;
     private Servo crossbow = null;
+    private Servo autoHook = null;
     private TouchSensor liftLimit = null;
     double powercoef = 0.5;
+    private double autoHookSetpoint = Constants.autoHookStowPosition;
     private boolean fieldCentric = false;
 
     @Override
@@ -56,6 +58,7 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
         climberUpstairs = hardwareMap.get(DcMotorEx.class, "climber_upstairs");
 
         servo = hardwareMap.get(Servo.class, "servo");
+        autoHook = hardwareMap.get(Servo.class, "auto_hook");
         crossbow = hardwareMap.get(Servo.class, "crossbow");
 
         liftLimit = hardwareMap.get(TouchSensor.class, "lift_limit");
@@ -89,6 +92,7 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
         climberUpstairs.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         climberUpstairs.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         servo.setPosition(0);
+        autoHook.setPosition(Constants.autoHookStowPosition);
         crossbow.setPosition(0);
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
@@ -159,8 +163,8 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
         if (servo.getPosition() != servoSetpoint) servo.setPosition(servoSetpoint);
 
         // Climber stuff
-        if (climberDownstairs.getCurrentPosition() < Constants.climberDownstairsGoToZeroPosition
-            && gamepad2.left_stick_y <= 0) {
+        if ((climberDownstairs.getCurrentPosition() < Constants.climberDownstairsGoToZeroPosition
+            && gamepad2.left_stick_y <= 0 && !gamepad2.left_bumper)) {
             // Add a zone where it P controls to horizontal
             climberDownstairs.setVelocity(-climberDownstairs.getCurrentPosition() * 3);
         } else {
@@ -170,6 +174,10 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
         if (gamepad2.dpad_up) climberUpstairs.setVelocity(2400);
         else if (gamepad2.dpad_down) climberUpstairs.setVelocity(-2400);
         else climberUpstairs.setVelocity(0);
+
+        if (gamepad2.a && gamepad2.dpad_up) autoHookSetpoint += 0.1;
+        else if (gamepad2.a && gamepad2.dpad_down) autoHookSetpoint -= 0.1;
+        if (autoHook.getPosition() != autoHookSetpoint) autoHook.setPosition(autoHookSetpoint);
         telemetry.addData("climber downstairs position: ", climberDownstairs.getCurrentPosition());
 
     }

@@ -42,10 +42,10 @@ public class BackdropAprilTag {
     private static final double OFFSET_SCORING_MECHANISM_FROM_ROBOT_CENTER = 3.75;
 
     //**TODO Tune the next four values later - after the basic movement is working ...
-    private static final double TURN_ADJUSTMENT_PERCENT = 0.35;
+    private static final double TURN_ADJUSTMENT_PERCENT = 0.5;
     private static final double STRAFE_ADJUSTMENT_PERCENT = 0.20; // LCHS 23838
     // lhack- this is how much more left or right we have to go than the left or right apriltags to score.  has to be adjusted on an actual backboard.
-    private static final double OUTSIDE_STRAFE_ADJUSTMENT = 0.0; // LCHS 23838.
+    private static final double OUTSIDE_STRAFE_ADJUSTMENT = -0.025; // LCHS 23838.
     // lhack- this is how much to adjust before scoring yellow on middle, so we can choose between the left and right slots and avoid the dreadful pixel on crest.
     private static final double YELLOW_PIXEL_ADJUSTMENT = 0.0; // LCHS 23838
     private static final double DISTANCE_ADJUSTMENT_PERCENT = 0.0; // LCHS 23838
@@ -113,16 +113,14 @@ public class BackdropAprilTag {
         RobotLog.dd(TAG, "Angle from robot center to AprilTag " + angleFromRobotCenterToAprilTag);
         RobotLog.dd(TAG, "Distance from robot center to AprilTag " + distanceFromRobotCenterToAprilTag);
 
-        if (Math.abs(detectionData.ftcDetectionData.ftcPose.yaw) >= 2.0) {
-            // Turn the robot so it faces the AprilTag.
-            double angleToTurn = -detectionData.ftcDetectionData.ftcPose.yaw;
-            if (TURN_ADJUSTMENT_PERCENT != 0.0) {
-                angleToTurn += (angleToTurn * TURN_ADJUSTMENT_PERCENT);
-                RobotLog.dd(TAG, "Adjusting angle to turn by a factor of " + TURN_ADJUSTMENT_PERCENT + " for an angle to turn of " + angleToTurn);
-            }
-            double turnVelocity = 500;
-            container.goTo(0, 0, angleToTurn, turnVelocity, true);
+        // Turn the robot so it faces the AprilTag.
+        double angleToTurn = -detectionData.ftcDetectionData.ftcPose.yaw;
+        if (TURN_ADJUSTMENT_PERCENT != 0.0) {
+            angleToTurn += (angleToTurn * TURN_ADJUSTMENT_PERCENT);
+            RobotLog.dd(TAG, "Adjusting angle to turn by a factor of " + TURN_ADJUSTMENT_PERCENT + " for an angle to turn of " + angleToTurn);
         }
+        double turnVelocity = 500;
+        container.goTo(0, 0, angleToTurn, turnVelocity, true);
 
         // Adjust to find the angle after we turn.
         angleFromRobotCenterToAprilTag = angleFromRobotCenterToAprilTag - detectionData.ftcDetectionData.ftcPose.yaw;
@@ -202,7 +200,7 @@ public class BackdropAprilTag {
         }
 
         double moveAngle = (pDirection == Direction.FORWARD) ? 0.0 : -180.0;
-        double straightLineVelocity = .3;
+        double straightLineVelocity = shortDistanceVelocity(distanceToMove);
         if (Math.abs(distanceToMove) >= 1.0) {
             RobotLog.dd(TAG, "Move robot towards the AprilTag " + distanceToMove + " inches");
             //**TODO Here's where you actually move your robot forward or backward into position:
@@ -370,7 +368,8 @@ public class BackdropAprilTag {
         // TODO: adjust? -lhack
         // return Math.abs(pDistance) < 2.0 ? 0.5 : 0.3; original phil's code
         // return Math.abs(pDistance) < 2.0? 1.5 : 1;
-        return 1.5;
+        // return 1.5;
+        return 800;
     }
 
 }

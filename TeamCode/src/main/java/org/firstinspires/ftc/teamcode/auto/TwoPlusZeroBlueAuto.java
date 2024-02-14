@@ -132,36 +132,41 @@ public class TwoPlusZeroBlueAuto extends LinearOpMode {
 
         climberDownstairs.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         climberDownstairs.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        climberDownstairs.setTargetPosition(600);
-        climberDownstairs.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        climberDownstairs.setVelocity(600);
 
         double autoPower = 1500;
 
         goTo(1050, 0, 0, autoPower, true);
 
+        // Pixel snagged on ground
+        // Pixel fell out from under hook
         // Go to spike marks, drop a purple, then get the Apriltags into the camera's field of view.
         if (propArea < 8000) { // None detected, we assume left spike mark
-            goTo(0, -400, 0, autoPower, true);
+            goTo(0, -400, 0, 800, true);
             purpleHook.setPosition(Constants.purpleHookStowPosition);
             sleep(500);
+            goTo(50, 0, 0, autoPower, true);
             goTo(0, -800, 0, autoPower, true);
             goTo(0, -800, -110, autoPower, true);
         } else if (propX > 600) { // right spike mark
-            goTo(0, 800, 0, autoPower, true);
+            goTo(0, 850, 0, 800, true);
             purpleHook.setPosition(Constants.purpleHookStowPosition);
             sleep(500);
+            goTo(50, 0, 0, autoPower, true);
             goTo(0, -1000, -10, autoPower, true);
             goTo(0, -800, -110, autoPower, true);
         } else { // middle spike mark
-            goTo(475, 0, 0, autoPower, true);
-            goTo(0, 50, 0, autoPower, true);
+            goTo(440, 0, 0, autoPower, true);
+            goTo(0, 50, 0, 800, true);
             purpleHook.setPosition(Constants.purpleHookStowPosition);
             sleep(500);
+            goTo(50, 0, 0, autoPower, true);
             goTo(0, -1000, 0, autoPower, true);
             goTo(0, -800, -110, autoPower, true);
         }
 
+        climberDownstairs.setTargetPosition(600);
+        climberDownstairs.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        climberDownstairs.setVelocity(600);
         for (int i = 0; i < 2000; i++) sleep(1);
         container.init(this);
         backdropAprilTag.driveToBackdropAprilTag(aprilTagEnum, 1.25, BackdropAprilTag.Direction.FORWARD, container);

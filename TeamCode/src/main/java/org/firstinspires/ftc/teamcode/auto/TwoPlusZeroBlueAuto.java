@@ -138,15 +138,15 @@ public class TwoPlusZeroBlueAuto extends LinearOpMode {
 
         double autoPower = 1500;
 
-        goTo(1175, 0, 0, autoPower, true);
+        goTo(1050, 0, 0, autoPower, true);
 
         // Go to spike marks, drop a purple, then get the Apriltags into the camera's field of view.
         if (propArea < 8000) { // None detected, we assume left spike mark
-            goTo(100, 0, 0, autoPower, true);
-            goTo(0, 0, -90, autoPower, true);
+            goTo(0, -400, 0, autoPower, true);
             purpleHook.setPosition(Constants.purpleHookStowPosition);
             sleep(500);
-            goTo(-800, 0, -210, autoPower, true);
+            goTo(0, -800, 0, autoPower, true);
+            goTo(0, -800, -110, autoPower, true);
         } else if (propX > 600) { // right spike mark
             goTo(0, 800, 0, autoPower, true);
             purpleHook.setPosition(Constants.purpleHookStowPosition);
@@ -154,7 +154,7 @@ public class TwoPlusZeroBlueAuto extends LinearOpMode {
             goTo(0, -1000, -10, autoPower, true);
             goTo(0, -800, -110, autoPower, true);
         } else { // middle spike mark
-            goTo(350, 0, 0, autoPower, true);
+            goTo(475, 0, 0, autoPower, true);
             goTo(0, 50, 0, autoPower, true);
             purpleHook.setPosition(Constants.purpleHookStowPosition);
             sleep(500);

@@ -30,6 +30,7 @@ public class TwoPlusZeroBlueAuto extends LinearOpMode {
     DcMotorEx rightBackDrive;
     private Servo servo;
     private Servo autoHook;
+    private Servo purpleHook;
     ArrayList<DcMotorEx> driveMotors = new ArrayList<>();
     OpenCvCamera camera;
     BasicPipeline pipeline = new BasicPipeline();
@@ -68,6 +69,8 @@ public class TwoPlusZeroBlueAuto extends LinearOpMode {
 
         autoHook = hardwareMap.get(Servo.class, "auto_hook");
         autoHook.setPosition(Constants.autoHookStowPosition);
+        purpleHook = hardwareMap.get(Servo.class, "purple hook");
+        purpleHook.setPosition(Constants.purpleHookDragPosition);
 
         RobotContainer container = new RobotContainer();
 
@@ -137,33 +140,26 @@ public class TwoPlusZeroBlueAuto extends LinearOpMode {
 
         goTo(1175, 0, 0, autoPower, true);
 
-        if (propArea < 15000) { // None detected, we assume left spike mark
+        // Go to spike marks, drop a purple, then get the Apriltags into the camera's field of view.
+        if (propArea < 8000) { // None detected, we assume left spike mark
             goTo(100, 0, 0, autoPower, true);
             goTo(0, 0, -90, autoPower, true);
+            purpleHook.setPosition(Constants.purpleHookStowPosition);
             sleep(500);
-            intake.setPower(-1);
-            sleep(1000);
-            intake.setPower(0);
+            goTo(-800, 0, -210, autoPower, true);
+        } else if (propX > 600) { // right spike mark
+            goTo(0, 800, 0, autoPower, true);
+            purpleHook.setPosition(Constants.purpleHookStowPosition);
+            sleep(500);
+            goTo(0, -1000, -10, autoPower, true);
+            goTo(0, -800, -110, autoPower, true);
+        } else { // middle spike mark
+            goTo(350, 0, 0, autoPower, true);
+            goTo(0, 50, 0, autoPower, true);
+            purpleHook.setPosition(Constants.purpleHookStowPosition);
             sleep(500);
             goTo(0, -1000, 0, autoPower, true);
-            goTo(800, 0, 0, autoPower, true);
-        } else if (propX > 600) { // right spike mark
-            goTo(-200, 0, 0, autoPower, true);
-            goTo(0, -100, 90, autoPower, true);
-            sleep(500);
-            intake.setPower(-1);
-            sleep(1000);
-            intake.setPower(0);
-            sleep(500);
-            goTo(-800, 0, 210, autoPower, true);
-        } else { // middle spike mark
-            goTo(0, 300, 0, autoPower, true);
-            sleep(500);
-            intake.setPower(-1);
-            sleep(1000);
-            intake.setPower(0);
-            sleep(500);
-            goTo(-400, -200, -90, autoPower, true);
+            goTo(0, -800, -110, autoPower, true);
         }
 
         for (int i = 0; i < 2000; i++) sleep(1);

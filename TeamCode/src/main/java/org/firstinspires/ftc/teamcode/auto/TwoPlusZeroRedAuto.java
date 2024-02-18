@@ -133,65 +133,74 @@ public class TwoPlusZeroRedAuto extends LinearOpMode {
 
         climberDownstairs.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         climberDownstairs.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        climberDownstairs.setTargetPosition(600);
-        climberDownstairs.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        climberDownstairs.setVelocity(600);
         double autoPower = 1500;
 
-        goTo(1175, 0, 0, autoPower, true);
 
         // Go to spike marks, drop a purple, then get the Apriltags into the camera's field of view.
         if (propArea < 8000) { // None detected, we assume left spike mark
-            goTo(100, 0, 0, autoPower, true);
-            goTo(0, 0, -90, autoPower, true);
+            goTo(1050, 0, 0, autoPower, true);
+            goTo(0, -400, 0, 800, true);
             purpleHook.setPosition(Constants.purpleHookStowPosition);
             sleep(500);
-            goTo(-800, 0, -210, autoPower, true);
+            goTo(50, 0, 0, autoPower, true);
+            goTo(0, 800, 0, autoPower, true);
+            goTo(0, 200, 100, autoPower, true);
         } else if (propX > 600) { // right spike mark
-            goTo(0, 0, 90, autoPower, true);
+            goTo(500, 0, 0, autoPower, true);
+            goTo(0, 850, 0, 800, true);
+            goTo(620, 0, 0, autoPower, true);
             purpleHook.setPosition(Constants.purpleHookStowPosition);
             sleep(500);
-            goTo(0, 1000, -10, autoPower, true);
+            goTo(50, 0, 0, autoPower, true);
+            goTo(0, 1000, 10, autoPower, true);
+            goTo(0, 800, 90, autoPower, true);
         } else { // middle spike mark
-            goTo(350, 200, 0, autoPower, true);
+            goTo(1050, 0, 0, autoPower, true);
+            goTo(440, 0, 0, autoPower, true);
+            goTo(0, 50, 0, 800, true);
             purpleHook.setPosition(Constants.purpleHookStowPosition);
             sleep(500);
-            goTo(0, 600, 0, autoPower, true);
-            goTo(0, 200, 90, autoPower, true);
+            goTo(50, 0, 0, autoPower, true);
+            goTo(0, 1000, 0, autoPower, true);
+            goTo(0, 200, -110, autoPower, true);
         }
 
-        // Wait to recognize the apriltag
-        for (int i = 0; i < 1000; i++) sleep(1);
-        // Drive to backdrop via apriltag.
-        container.init(this);
-        boolean successfulBackdropDrive = backdropAprilTag.driveToBackdropAprilTag(aprilTagEnum, 0, BackdropAprilTag.Direction.FORWARD, container);
-
-        // Failsafe in case apriltag navigation fails
-        if (!successfulBackdropDrive) {
-            if (propArea < 8000) { // None detected, we assume left spike mark
-                goTo(-1800, 0, 0, autoPower, true);
-                goTo(0, 0, -200, autoPower, true);
-                goTo(200, 0, 0, autoPower, true);
+        climberDownstairs.setTargetPosition(600);
+        climberDownstairs.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        climberDownstairs.setVelocity(600);
+        // for (int i = 0; i < 2000; i++) sleep(1);
+        // container.init(this);
+        intake.setPower(0.5);
+        if (false) {
+            backdropAprilTag.driveToBackdropAprilTag(aprilTagEnum, 1.25, BackdropAprilTag.Direction.FORWARD, container);
+        } else {
+            if (propArea < 15000) { // None detected, we assume left spike mark
+                goTo(1200, -200, 0, autoPower, true);
             } else if (propX > 600) { // right spike mark
-                goTo(0, 1000, 0, autoPower, true);
-                goTo(1800, 0, 0, autoPower, true);
-                goTo(0, -1000, 0, autoPower, true);
-                goTo(200, 0, 0, autoPower, true);
+                goTo(1100, 1200, 0, autoPower, true);
             } else { // middle spike mark
-                goTo(-400, 0, 100, autoPower, true);
-                goTo(1800, 0, 0, autoPower, true);
-                goTo(200, 0, 0, autoPower, true);
+                goTo(650, 50, 10, autoPower, true);
             }
         }
-
-        // Score
-        goTo(50, 0, 0, autoPower, true);
-        sleep(300);
+        goTo(200, 0, 0, 800, true);
         autoHook.setPosition(Constants.autoHookYellowDropPosition);
         sleep(1000);
-        goTo(-200, 0, 0, autoPower, true);
+        goTo(-200, 0, 0, 600, true);
         autoHook.setPosition(Constants.autoHookStowPosition);
-        goTo(-500, 1500, 0, 10000, true);
+        goTo(250, 0, 0, 250, true);
+        goTo(-200, 0, 0, 600, true);
+        if (!(propArea < 15000) && !(propX > 600)) { // If we drop on middle, vibrate the backboard so it comes off the crest
+            goTo(250, 0, 0, 250, true);
+            goTo(-200, 0, 0, 600, true);
+        }
+        if (propArea < 15000) { // None detected, we assume left spike mark
+            goTo(-500, -1200, 0, 10000, true);
+        } else if (propX > 600) { // right spike mark
+            goTo(0, 0, -90, 10000, true);
+            goTo(-1500, 0, 0, 10000, true);
+        } else { // middle spike mark
+            goTo(-500, -1500, 0, 10000, true);
+        }
 
     }
     public void goTo(double forward, double strafe, double yaw, double powercoef, boolean waitToFinish) {

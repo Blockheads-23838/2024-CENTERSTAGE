@@ -1,17 +1,24 @@
 package org.firstinspires.ftc.teamcode.teleop;
 
+import static java.lang.Math.copySign;
+import static java.lang.Math.max;
+import static java.lang.Math.min;
+
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.TouchSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.common.Constants;
+import org.firstinspires.ftc.teamcode.common.Button;
 
-@TeleOp(name="One person teleop", group="Linear OpMode")
+@TeleOp(name="One person opmode", group="Linear OpMode")
 public class OnePersonTeleop extends LinearOpMode {
 
     // Declare OpMode members for each of the 4 motors.
@@ -22,11 +29,15 @@ public class OnePersonTeleop extends LinearOpMode {
     private DcMotor rightBackDrive = null;
     private DcMotor intake = null;
     private DcMotorEx lift = null;
-    private DcMotorEx climber = null;
+    private DcMotorEx climberDownstairs = null;
+    private DcMotorEx climberUpstairs = null;
     private IMU imu = null;
     private Servo servo = null;
     private Servo crossbow = null;
+    private Servo autoHook = null;
+    private TouchSensor liftLimit = null;
     double powercoef = 0.5;
+    private double autoHookSetpoint = Constants.autoHookStowPosition;
     private boolean fieldCentric = false;
 
     @Override
@@ -43,11 +54,16 @@ public class OnePersonTeleop extends LinearOpMode {
 
         lift = hardwareMap.get(DcMotorEx.class, "lift");
         intake = hardwareMap.get(DcMotor.class, "intake");
-        climber = hardwareMap.get(DcMotorEx.class, "climber");
+        climberDownstairs = hardwareMap.get(DcMotorEx.class, "climber_downstairs");
+        climberUpstairs = hardwareMap.get(DcMotorEx.class, "climber_upstairs");
 
         servo = hardwareMap.get(Servo.class, "servo");
+        autoHook = hardwareMap.get(Servo.class, "auto_hook");
         crossbow = hardwareMap.get(Servo.class, "crossbow");
 
+        liftLimit = hardwareMap.get(TouchSensor.class, "lift_limit");
+
+        climberDownstairs.setDirection(Constants.motorDirections.get("climber_downstairs"));
         leftFrontDrive.setDirection(Constants.motorDirections.get("left_front"));
         leftBackDrive.setDirection(Constants.motorDirections.get("left_back"));
         rightFrontDrive.setDirection(Constants.motorDirections.get("right_front"));
@@ -64,28 +80,35 @@ public class OnePersonTeleop extends LinearOpMode {
 
         // Wait for the game to start (driver presses PLAY)
         while(!isStarted() && !isStopRequested()) {
-            telemetry.addData("Lift joystick position: ", gamepad2.right_stick_y);
+            if (gamepad1.a) {
+                lift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                lift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            }
+            if (crossbow.getPosition() != Constants.crossbowRestPosition) crossbow.setPosition(Constants.crossbowRestPosition);
+            telemetry.addData("lift position: ", lift.getCurrentPosition());
+            telemetry.update();
         }
 
         runtime.reset();
-        climber.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        climber.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        climberUpstairs.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        climberUpstairs.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         servo.setPosition(0);
-
+        autoHook.setPosition(Constants.autoHookStowPosition);
+        crossbow.setPosition(Constants.crossbowRestPosition);
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
             // arm servo debug code
-            // arm.setPower(gamepad2.right_stick_y * 1/4);
+            // arm.setPower(gamepad1.right_stick_y * 1/4);
             // servo.setPosition(position);
-            // intake.setPower(-gamepad2.right_trigger);
+            // intake.setPower(-gamepad1.right_trigger);
 
             // crossbow
             double crossbowSetpoint;
-            if (gamepad2.left_stick_button && gamepad2.right_stick_button) {
+            if (gamepad1.left_stick_button && gamepad1.right_stick_button) {
                 telemetry.addLine("crossbowing!!");
-                crossbowSetpoint = 0.0;
+                crossbowSetpoint = Constants.crossbowFirePosition;
             } else {
-                crossbowSetpoint = 0.2;
+                crossbowSetpoint = Constants.crossbowRestPosition;
             }
             telemetry.addData("crossbow setpoint", crossbowSetpoint);
             if (crossbowSetpoint != crossbow.getPosition()) crossbow.setPosition(crossbowSetpoint);
@@ -95,59 +118,69 @@ public class OnePersonTeleop extends LinearOpMode {
             handleLift();
 
             HandleDrivetrain();
+            telemetry.addData("lift limit status: ", liftLimit.isPressed());
             telemetry.update();
         }
     }
 
     public void handleLift() {
         // Lift stuff
-        if (gamepad2.a) {
+        if (gamepad1.a) {
             lift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             lift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         }
         int liftPos = lift.getCurrentPosition();
         telemetry.addData("lift position: ", liftPos);
         double liftPower;
-        boolean coasting = false;
-        if (gamepad2.left_bumper) liftPower = gamepad2.right_stick_y * 1500; // manual override; also former ticks/sec value
-        else if (liftPos > Constants.TopLiftPosition && -gamepad2.right_stick_y < 0) liftPower = 0;
-        else if (liftPos < Constants.IntakingLiftPosition && gamepad2.right_trigger > 0.5) {
-            liftPower = 1000;
-            coasting = true;
-        }
-        else if (liftPos < Constants.groundLiftPosition) liftPower = 200;
-        else liftPower = gamepad2.right_stick_y * 2500;
-        if (coasting) lift.setPower(0);
-        else lift.setVelocity(liftPower + 1);
+        if (gamepad1.left_bumper) liftPower = gamepad1.right_stick_y * 1500; // manual override; also former ticks/sec value
+        else if (liftPos > Constants.TopLiftPosition && -gamepad1.right_stick_y < 0) liftPower = 0; // Upper limit
+        else if (liftPos < Constants.groundLiftPosition && gamepad1.right_stick_y <= 0) liftPower = -liftPos*10; // Lower limit
+        else if (gamepad1.right_stick_y < 0) liftPower = gamepad1.right_stick_y * (lift.getCurrentPosition()*3 + 200); // If we're going down, act as a P controller to reduce overshoot
+        else liftPower = gamepad1.right_stick_y * 2500;
+        lift.setVelocity(liftPower + 1);
 
         // Intake stuff
-        if (gamepad2.right_trigger > 0.5) {
+        if (gamepad1.right_trigger > 0.5) {
             intake.setPower(-1);
         } else {
-            intake.setPower(gamepad2.left_trigger);
+            intake.setPower(gamepad1.left_trigger);
         }
 
         // Servo stuff
         double servoSetpoint;
-        if (gamepad2.y) {
+        if (gamepad1.y) {
             servoSetpoint = 0.22; // dropping pixels; 0.19 is decent 14.57 12.22.23
-        } else if (gamepad2.right_trigger > 0.5 ||
-                (lift.getCurrentPosition() < Constants.ClearIntakeLiftPosition && -gamepad2.right_stick_y > 0)){
+        } else if (gamepad1.right_trigger > 0.5 /* ||
+                (lift.getCurrentPosition() < Constants.ClearIntakeLiftPosition && -gamepad1.right_stick_y > 0) */){
             // put pan down if we're intaking or clearing the intake
-            servoSetpoint = 0.00;
+            servoSetpoint = Constants.IntakingServoPosition;
         } else {
             // stow/carry position
             servoSetpoint = 0.09;
         }
-
-        // Climber
-        if (gamepad2.dpad_up) climber.setVelocity(4000 + climber.getCurrentPosition());
-        else climber.setVelocity(-climber.getCurrentPosition());
-
         // sleep(20);
         telemetry.addData("servoSetpoint: ", servoSetpoint);
         telemetry.addData("Last servo setpoint: ", servo.getPosition());
         if (servo.getPosition() != servoSetpoint) servo.setPosition(servoSetpoint);
+
+        // Climber stuff
+        if ((climberDownstairs.getCurrentPosition() < Constants.climberDownstairsGoToZeroPosition
+                && gamepad2.left_stick_y <= 0 && !gamepad2.left_bumper)) {
+            // Add a zone where it P controls to horizontal
+            climberDownstairs.setVelocity(-climberDownstairs.getCurrentPosition() * 3);
+        } else {
+            climberDownstairs.setVelocity(600 * gamepad2.left_stick_y + 1);
+        }
+
+        if (gamepad1.dpad_up) climberUpstairs.setVelocity(2400);
+        else if (gamepad1.dpad_down) climberUpstairs.setVelocity(-2400);
+        else climberUpstairs.setVelocity(0);
+
+        if (gamepad1.a && gamepad1.dpad_up) autoHookSetpoint += 0.1;
+        else if (gamepad1.a && gamepad1.dpad_down) autoHookSetpoint -= 0.1;
+        if (autoHook.getPosition() != autoHookSetpoint) autoHook.setPosition(autoHookSetpoint);
+        telemetry.addData("climber downstairs position: ", climberDownstairs.getCurrentPosition());
+
     }
 
     public void HandleDrivetrain() {
@@ -157,15 +190,13 @@ public class OnePersonTeleop extends LinearOpMode {
         if (gamepad1.b) imu.resetYaw();
         telemetry.addData("FIELD_CENTRIC: ", fieldCentric);
 
-        if(gamepad2.right_bumper) powercoef = 1;
+        if(gamepad1.right_bumper) powercoef = 1;
         else if (gamepad1.left_trigger > 0.3) powercoef = 0.2;
         else powercoef = 0.4;
 
-        double forward = -gamepad2.left_stick_y; /* Invert stick Y axis */
-        double strafe = 0;
-        if (gamepad2.dpad_left) strafe = -0.4;
-        else if (gamepad2.dpad_right) strafe = 0.4;
-        double yaw = gamepad2.left_stick_x;
+        double forward = -gamepad1.left_stick_y; /* Invert stick Y axis */
+        double strafe = gamepad1.left_stick_x;
+        double yaw = gamepad1.right_stick_x;
 
         if (fieldCentric) {
             double gyro_radians = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);

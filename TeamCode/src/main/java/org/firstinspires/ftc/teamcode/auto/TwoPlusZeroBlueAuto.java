@@ -198,8 +198,7 @@ public class TwoPlusZeroBlueAuto extends LinearOpMode {
         if (propArea < 15000) { // None detected, we assume left spike mark
             goTo(-500, -1500, 0, 10000, true);
         } else if (propX > 600) { // right spike mark
-            goTo(0, 0, 90, 10000, true);
-            goTo(-1500, 0, 0, 10000, true);
+            goTo(-200, -2000, 0, 10000, true);
         } else { // middle spike mark
             goTo(-500, -1500, 0, 10000, true);
         }

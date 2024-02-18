@@ -152,7 +152,7 @@ public class TwoPlusZeroRedAuto extends LinearOpMode {
             purpleHook.setPosition(Constants.purpleHookStowPosition);
             sleep(500);
             goTo(50, 0, 0, autoPower, true);
-            goTo(0, 1000, 10, autoPower, true);
+            goTo(0, 600, 10, autoPower, true);
             goTo(0, 800, 90, autoPower, true);
         } else { // middle spike mark
             goTo(1050, 0, 0, autoPower, true);
@@ -177,7 +177,7 @@ public class TwoPlusZeroRedAuto extends LinearOpMode {
             if (propArea < 15000) { // None detected, we assume left spike mark
                 goTo(1200, -200, 0, autoPower, true);
             } else if (propX > 600) { // right spike mark
-                goTo(1100, 1200, 0, autoPower, true);
+                goTo(300, 100, 0, autoPower, true);
             } else { // middle spike mark
                 goTo(600, 650, 0, autoPower, true);
             }
@@ -190,13 +190,13 @@ public class TwoPlusZeroRedAuto extends LinearOpMode {
         goTo(250, 0, 0, 250, true);
         goTo(-200, 0, 0, 600, true);
         if (propArea < 15000) { // None detected, we assume left spike mark
-            goTo(-500, -1200, 0, 10000, true);
+            goTo(-200, 1300, 0, 10000, true);
         } else if (propX > 600) { // right spike mark
-            goTo(0, 0, -90, 10000, true);
-            goTo(-1500, 0, 0, 10000, true);
+            goTo(-200, 800, 0, 10000, true);
         } else { // middle spike mark
             goTo(-200, 1000, 0, 10000, true);
         }
+        sleep(1000);
 
     }
     public void goTo(double forward, double strafe, double yaw, double powercoef, boolean waitToFinish) {

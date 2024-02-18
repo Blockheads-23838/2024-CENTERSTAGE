@@ -30,11 +30,8 @@ public class Constants {
     public static double autoHookStowPosition = 0.7;
     public static double autoHookCarryPosition = 0.5;
     public static double autoHookYellowDropPosition = 0.05;
-    public static double purpleHookDragPosition = 0;
-    public static double purpleHookStowPosition = 0.8;
-
+    public static double purpleHookDragPosition = 0.045;
+    public static double purpleHookStowPosition = 0.3;
     public static double climberDownstairsGoToZeroPosition = 120;
-
-
     public static double IntakingServoPosition = 0.05; // 0.05 works great in solo (only leo) testing
 }

@@ -84,6 +84,7 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
                 lift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
                 lift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             }
+            if (crossbow.getPosition() != Constants.crossbowRestPosition) crossbow.setPosition(Constants.crossbowRestPosition);
             telemetry.addData("lift position: ", lift.getCurrentPosition());
             telemetry.update();
         }
@@ -93,7 +94,7 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
         climberUpstairs.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         servo.setPosition(0);
         autoHook.setPosition(Constants.autoHookStowPosition);
-        crossbow.setPosition(0);
+        crossbow.setPosition(Constants.crossbowRestPosition);
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
             // arm servo debug code

@@ -175,11 +175,11 @@ public class TwoPlusZeroRedAuto extends LinearOpMode {
             backdropAprilTag.driveToBackdropAprilTag(aprilTagEnum, 1.25, BackdropAprilTag.Direction.FORWARD, container);
         } else {
             if (propArea < 15000) { // None detected, we assume left spike mark
-                goTo(1200, -200, 0, autoPower, true);
+                goTo(1300, -200, 0, autoPower, true);
             } else if (propX > 600) { // right spike mark
-                goTo(300, 100, 0, autoPower, true);
+                goTo(400, 100, 0, autoPower, true);
             } else { // middle spike mark
-                goTo(600, 650, 0, autoPower, true);
+                goTo(700, 650, 3, autoPower, true);
             }
         }
         goTo(200, 0, 0, 800, true);
